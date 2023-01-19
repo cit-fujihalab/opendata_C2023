@@ -1,0 +1,15 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.formatting.provider": "black",
+    "cSpell.words": [
+        "opendata",
+        "virtualenvs"
+    ],
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    },
+    "python.linting.mypyEnabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+}
