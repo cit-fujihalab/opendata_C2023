@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "donjayamanne.python-extension-pack",
+        "streetsidesoftware.code-spell-checker",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "mhutchie.git-graph"
+    ]
+}
