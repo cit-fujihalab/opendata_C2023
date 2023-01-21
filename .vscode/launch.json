@@ -5,7 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: RUN",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "LOGLEVEL": "INFO"
+            }
+        },
+        {
+            "name": "Python: Debug",
             "type": "python",
             "request": "launch",
             "program": "${file}",
