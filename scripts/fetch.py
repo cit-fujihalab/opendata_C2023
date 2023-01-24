@@ -3,6 +3,7 @@ import os
 
 import datetime as dt
 import abc
+import time
 from typing import Any
 import requests
 import logging
@@ -23,6 +24,8 @@ class Api(abc.ABC):
         return ""
 
     def get(self, date: dt.datetime):
+        TEMP_DIR = "./tmp"
+        OUT_DIR = "./data"
         params = {"acl:consumerKey": self.key}
         zip_name = self.resource_name + "_" + date.strftime("%Y%m%d") + ".zip"
 
@@ -37,32 +40,40 @@ class Api(abc.ABC):
         res.raise_for_status()
 
         q: "queue.Queue[Any]" = queue.Queue(0)
+        is_finished = False
 
         def write():
-            with open("./data/" + zip_name, "wb") as f:
+            os.makedirs(TEMP_DIR, exist_ok=True)
+            with open(TEMP_DIR + "/" + zip_name, "wb") as f:
                 while True:
-                    chunk = q.get(block=True)
-                    if chunk is None:
+                    if q.empty() and is_finished:
                         return
+                    if q.empty():
+                        time.sleep(0.1)
+                        continue
+
+                    chunk = q.get_nowait()
                     f.write(chunk)
                     f.flush()
+                    q.task_done()
 
-        t = threading.Thread(target=write, daemon=True)
+        t = threading.Thread(target=write)
         t.start()
 
         for chunk in res.iter_content(chunk_size=10**7):
             q.put(chunk)
 
-        q.put(None)  # For the case of only 1 chunk
-        t.join()
+        is_finished = True
+        q.join()
+
         logging.info("fetched " + zip_name)
 
         def async_extract():
-            with zipfile.ZipFile("./data/" + zip_name) as zf:
+            with zipfile.ZipFile(TEMP_DIR + "/" + zip_name) as zf:
                 for info in zf.infolist():
-                    zf.extract(info, path="./data/" + zip_name.rsplit(".zip", 1)[0])
+                    zf.extract(info, path=OUT_DIR + "/" + zip_name.rsplit(".zip", 1)[0])
 
-            os.remove("./data/" + zip_name)
+            os.remove(TEMP_DIR + "/" + zip_name)
             logging.info("extracted " + zip_name)
 
         multiprocessing.Process(target=async_extract).start()
@@ -110,6 +121,6 @@ if __name__ == "__main__":
             try:
                 api.get(date)
             except:
-                logging.error(str(api.__class__) + " error: " + date.strftime("%Y%m%d"))
+                logging.error(api.resource_name + " " + date.strftime("%Y%m%d"))
 
         date = date + dt.timedelta(days=1)
