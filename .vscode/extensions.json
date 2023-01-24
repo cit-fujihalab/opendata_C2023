@@ -6,6 +6,7 @@
         "streetsidesoftware.code-spell-checker",
         "esbenp.prettier-vscode",
         "redhat.vscode-yaml",
-        "mhutchie.git-graph"
+        "mhutchie.git-graph",
+        "mechatroner.rainbow-csv"
     ]
 }

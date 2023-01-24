@@ -12,4 +12,9 @@
     },
     "python.linting.mypyEnabled": true,
     "python.analysis.typeCheckingMode": "basic",
+    "isort.check": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+        "source.fixAll": true
+    }
 }
