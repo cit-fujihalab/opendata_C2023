@@ -3,10 +3,13 @@ import os
 
 import datetime as dt
 import abc
+from typing import Any
 import requests
 import logging
 import zipfile
 import multiprocessing
+import threading
+import queue
 
 
 class Api(abc.ABC):
@@ -33,12 +36,25 @@ class Api(abc.ABC):
         )
         res.raise_for_status()
 
+        q: "queue.Queue[Any]" = queue.Queue(0)
+
+        def write():
         with open("./data/" + zip_name, "wb") as f:
-            for chunk in res.iter_content(chunk_size=1024 * 16):
-                if chunk:
+                while True:
+                    chunk = q.get(block=True)
+                    if chunk is None:
+                        return
                     f.write(chunk)
                     f.flush()
 
+        t = threading.Thread(target=write, daemon=True)
+        t.start()
+
+        for chunk in res.iter_content(chunk_size=10**7):
+            q.put(chunk)
+
+        q.put(None)  # For the case of only 1 chunk
+        t.join()
         logging.info("fetched " + zip_name)
 
         def async_extract():
