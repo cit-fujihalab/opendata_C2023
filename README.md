@@ -16,12 +16,7 @@ Recommend setting
 ```
 $ poetry config virtualenvs.in-project true 
 ```
-
+Install Packages
 ```
 $ poetry install
 ```
-
-
-## VS Code
-### Linter
-Press "F1" Key -> Type "Python: Select Linter" and select-> flake8
