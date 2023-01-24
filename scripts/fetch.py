@@ -39,7 +39,7 @@ class Api(abc.ABC):
         q: "queue.Queue[Any]" = queue.Queue(0)
 
         def write():
-        with open("./data/" + zip_name, "wb") as f:
+            with open("./data/" + zip_name, "wb") as f:
                 while True:
                     chunk = q.get(block=True)
                     if chunk is None:
