@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  dev-env:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./:/var/projects
+
+      # For Windows other drive
+      - f:/data:/var/projects/data
+    command: "tail -f /dev/null"
+    # mem_limit: 10g
+    # shm_size: 1g
+    # cpus: 12
