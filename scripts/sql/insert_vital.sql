@@ -1,0 +1,11 @@
+call insert_unique('temp1', 'company_id', 'm_company', 'name');
+call insert_unique('temp1', 'office_id', 'm_office', 'name');
+call insert_unique('temp1', 'user_id', 'm_user', 'name');
+call insert_unique('temp1', 'before_judge_name', 'm_judge', 'name');
+call insert_unique('temp1', 'after_judge_name', 'm_judge', 'name');
+call insert_unique('temp1', 'before_fatigue_score_name', 'm_fatigue_score_name', 'name');
+call insert_unique('temp1', 'after_fatigue_score_name', 'm_fatigue_score_name', 'name');
+call insert_unique('temp1', 'before_fatigue_level_name', 'm_fatigue_level_name', 'name');
+call insert_unique('temp1', 'after_fatigue_level_name', 'm_fatigue_level_name', 'name');
+call insert_unique('temp1', 'before_crew_judge_name', 'm_crew_judge', 'name');
+call insert_unique('temp1', 'before_crew_judge_reason_name', 'm_crew_judge_reason', 'name');
