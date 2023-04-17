@@ -9,3 +9,16 @@ call insert_unique('temp1', 'before_fatigue_level_name', 'm_fatigue_level_name',
 call insert_unique('temp1', 'after_fatigue_level_name', 'm_fatigue_level_name', 'name');
 call insert_unique('temp1', 'before_crew_judge_name', 'm_crew_judge', 'name');
 call insert_unique('temp1', 'before_crew_judge_reason_name', 'm_crew_judge_reason', 'name');
+
+
+call insert_unique('temp_events', 'company_id', 'm_companies', 'code');
+call insert_unique('temp_events', 'office_id', 'm_offices', 'code');
+call insert_unique('temp_events', 'car_number', 'm_car_numbers', 'code');
+call insert_unique('temp_events', 'user_id', 'm_users', 'code');
+call insert_unique('temp_events', 'event_id', 'm_event_types', 'code');
+
+
+call insert_unique('temp_sensors_map', 'company_id', 'm_companies', 'code');
+call insert_unique('temp_sensors_map', 'office_id', 'm_offices', 'code');
+call insert_unique('temp_sensors_map', 'car_number', 'm_car_numbers', 'code');
+call insert_unique('temp_sensors_map', 'user_id', 'm_users', 'code');

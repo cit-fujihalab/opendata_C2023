@@ -1,15 +1,19 @@
 CREATE OR REPLACE PROCEDURE postgres.insert_unique(from_table varchar(50), from_column varchar(50), to_table varchar(50), to_column varchar(50)) LANGUAGE plpgsql AS $procedure$
 	begin
 
-execute 'insert into ' || to_table || '(' || to_column || ')' ||
-'(select distinct ' || from_column ||
-'  from ' || from_table || '
-where not exists (select 
-	' || to_column ||
-'  from 
-	' || to_table || '
-  where
-	' || from_table || '.' || from_column || ' = ' || to_table || '.' || to_column || '));';
+execute 'insert into ' || to_table || '(' || to_column || ')
+	(select ' || from_column || ' 
+		from ' || from_table || ' 
+	where not exists 
+		(select ' || to_column || ' 
+			from 
+				' || to_table || ' 
+			where
+				' || from_table || '.' || from_column || ' = ' || to_table || '.' || to_column || ' 
+			and 
+				' || from_table || '.' || from_column || ' is not null
+		)
+	);';
 
 	END;
 $procedure$;
@@ -109,6 +113,89 @@ begin
 			(select id from "m_users" where "code" = arow.user_id),
 			(select id from "m_crew_judge_types"  where "code" = arow.before_crew_judge_id),
 			(select id from "m_crew_judge_reasons" where "code" = arow.before_crew_judge_reason_id)
+		);
+	end loop;
+end;
+$procedure$;
+
+;
+
+
+CREATE OR REPLACE PROCEDURE postgres.insert_events() LANGUAGE plpgsql AS $procedure$
+declare
+	arow RECORD;
+
+begin
+	for arow in select * from temp_events loop
+		raise INFO 'arow:%', arow;
+		insert into t_events (
+			"date",
+			"timestamp",
+			"company_id",
+			"office_id",
+			"car_number_id",
+			"user_id",
+			"type_id",
+			"latitude",
+			"longitude",
+			"video_file_name1",
+			"video_file_name2",
+			"d_kbn")
+		values (
+			arow."date"::timestamptz,
+			arow."timestamp"::timestamptz,
+			(select id from "m_companies" where "code" = arow.company_id),
+			(select id from "m_offices" where "code" = arow.office_id),
+			(select id from "m_car_numbers" where "code" = arow.car_number),
+			(select id from "m_users" where "code" = arow.user_id),
+			(select id from "m_event_types" where "code" = arow.event_id),
+			arow.latitude,
+			arow.longitude,
+			arow.videofilename1,
+			arow.videofilename2,
+			arow.d_kbn
+		);
+	end loop;
+end;
+$procedure$;
+
+;
+
+
+CREATE OR REPLACE PROCEDURE postgres.insert_sensors_map() LANGUAGE plpgsql AS $procedure$
+declare
+	arow RECORD;
+
+begin
+	for arow in select * from temp_sensors_map loop
+		insert into t_positions (
+			"date",
+			"timestamp",
+			"company_id",
+			"office_id",
+			"car_number_id",
+			"user_id",
+			"latitude",
+			"longitude",
+			"speed",
+			"mapped_latitude",
+			"mapped_longitude",
+			"distance",
+			"d_kbn")
+		values (
+			arow."date"::timestamptz,
+			arow."timestamp"::timestamptz,
+			(select id from "m_companies" where "code" = arow.company_id),
+			(select id from "m_offices" where "code" = arow.office_id),
+			(select id from "m_car_numbers" where "code" = arow.car_number),
+			(select id from "m_users" where "code" = arow.user_id),
+			arow.latitude,
+			arow.longitude,
+			arow.speed,
+			arow.mapped_latitude,
+			arow.mapped_longitude,
+			arow.distance,
+			arow.d_kbn
 		);
 	end loop;
 end;
