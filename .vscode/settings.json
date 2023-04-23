@@ -10,6 +10,7 @@
         "editor.formatOnSave": true,
         "editor.formatOnSaveMode": "file"
     },
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
     "python.linting.mypyEnabled": true,
     "python.analysis.typeCheckingMode": "basic",
     "isort.check": true,
