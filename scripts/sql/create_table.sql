@@ -1,3 +1,6 @@
+alter tablespace tbsp_z set (random_page_cost=1.1);
+alter tablespace tbsp_z set (effective_io_concurrency =200);
+
 -- postgres.m_car_number_id_seq definition
 -- DROP SEQUENCE postgres.m_car_number_id_seq;
 
@@ -481,3 +484,49 @@ DELETE RESTRICT ON
 UPDATE RESTRICT;
 
 -- postgres.t_measurements foreign keys
+
+
+-- postgres.temp_vitals definition
+
+-- Drop table
+
+-- DROP TABLE postgres.temp_vitals;
+
+CREATE TABLE postgres.temp_vitals (
+	"date" varchar(12) NULL,
+	company_id varchar(7) NULL,
+	office_id varchar(12) NULL,
+	user_id varchar(30) NULL,
+	before_timestamp timestamptz NULL,
+	before_judge_id float4 NULL,
+	before_judge_name varchar(20) NULL,
+	before_body_temp float4 NULL,
+	before_spo2 float4 NULL,
+	before_sys float4 NULL,
+	before_dia float4 NULL,
+	before_fatigue_score_id float4 NULL,
+	before_fatigue_score_name varchar(30) NULL,
+	before_fatigue_level_id float4 NULL,
+	before_fatigue_level_name varchar(20) NULL,
+	before_fatigue_lh float4 NULL,
+	before_fatigue_deviation float4 NULL,
+	before_cnt int2 NULL,
+	before_crew_judge_id float4 NULL,
+	before_crew_judge_name varchar(10) NULL,
+	before_crew_judge_reason_id float4 NULL,
+	before_crew_judge_reason_name varchar(50) NULL,
+	after_timestamp timestamptz NULL,
+	after_judge_id float4 NULL,
+	after_judge_name varchar(20) NULL,
+	after_body_temp float4 NULL,
+	after_spo2 float4 NULL,
+	after_sys float4 NULL,
+	after_dia float4 NULL,
+	after_fatigue_score_id float4 NULL,
+	after_fatigue_score_name varchar(30) NULL,
+	after_fatigue_level_id float4 NULL,
+	after_fatigue_level_name varchar(20) NULL,
+	after_fatigue_lh float4 NULL,
+	after_fatigue_deviation float4 NULL,
+	after_cnt int2 NULL
+);

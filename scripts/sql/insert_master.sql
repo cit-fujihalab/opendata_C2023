@@ -1,14 +1,15 @@
-call insert_unique('temp1', 'company_id', 'm_company', 'name');
-call insert_unique('temp1', 'office_id', 'm_office', 'name');
-call insert_unique('temp1', 'user_id', 'm_user', 'name');
-call insert_unique('temp1', 'before_judge_name', 'm_judge', 'name');
-call insert_unique('temp1', 'after_judge_name', 'm_judge', 'name');
-call insert_unique('temp1', 'before_fatigue_score_name', 'm_fatigue_score_name', 'name');
-call insert_unique('temp1', 'after_fatigue_score_name', 'm_fatigue_score_name', 'name');
-call insert_unique('temp1', 'before_fatigue_level_name', 'm_fatigue_level_name', 'name');
-call insert_unique('temp1', 'after_fatigue_level_name', 'm_fatigue_level_name', 'name');
-call insert_unique('temp1', 'before_crew_judge_name', 'm_crew_judge', 'name');
-call insert_unique('temp1', 'before_crew_judge_reason_name', 'm_crew_judge_reason', 'name');
+-- vitals
+call insert_unique('temp_vitals', 'company_id', 'm_companies', 'code');
+call insert_unique('temp_vitals', 'office_id', 'm_offices', 'code');
+call insert_unique('temp_vitals', 'user_id', 'm_users', 'code');
+call insert_unique('temp_vitals', 'before_judge_name', 'm_judgements', 'description');
+call insert_unique('temp_vitals', 'after_judge_name', 'm_judgements', 'description');
+call insert_unique('temp_vitals', 'before_fatigue_score_name', 'm_fatigue_scores', 'description');
+call insert_unique('temp_vitals', 'after_fatigue_score_name', 'm_fatigue_scores', 'description');
+call insert_unique('temp_vitals', 'before_fatigue_level_name', 'm_fatigue_levels', 'description');
+call insert_unique('temp_vitals', 'after_fatigue_level_name', 'm_fatigue_levels', 'description');
+call insert_unique('temp_vitals', 'before_crew_judge_name', 'm_crew_judge_types', 'description');
+call insert_unique('temp_vitals', 'before_crew_judge_reason_name', 'm_crew_judge_reasons', 'description');
 
 
 call insert_unique('temp_events', 'company_id', 'm_companies', 'code');

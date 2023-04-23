@@ -2,18 +2,12 @@ CREATE OR REPLACE PROCEDURE postgres.insert_unique(from_table varchar(50), from_
 	begin
 
 execute 'insert into ' || to_table || '(' || to_column || ')
-	(select ' || from_column || ' 
+	(select distinct ' || from_column || ' 
 		from ' || from_table || ' 
-	where not exists 
-		(select ' || to_column || ' 
-			from 
-				' || to_table || ' 
-			where
-				' || from_table || '.' || from_column || ' = ' || to_table || '.' || to_column || ' 
-			and 
-				' || from_table || '.' || from_column || ' is not null
-		)
-	);';
+		where 
+			not exists (select ' || to_column || ' from ' || to_table || ' )
+		and 
+			' || from_table || '.' || from_column || ' is not null);';
 
 	END;
 $procedure$;
@@ -28,10 +22,13 @@ declare
 	after_ BIGINT;
 
 begin
-	for arow in select * from temp1 loop
+	for arow in select * from temp_vitals loop
 		raise INFO 'arow:%', arow;
+		if arow."date" is null or arow."date" = '' then
+			continue;
+		end if;
 		-- Region before measure insert
-		if arow.before_timestamp is not null and not arow.before_timestamp = '' then
+		if arow.before_timestamp is not null then
 			insert into t_measurements (
 				"timestamp",
 				"body_temp",
@@ -53,9 +50,9 @@ begin
 				arow.before_fatigue_lh,
 				arow.before_fatigue_deviation,
 				arow.before_cnt,
-				(select "id" from "m_judgements" where "code" = arow.before_judge_id),
-				(select "id" from "m_fatigue_scores" where "code" = arow.before_fatigue_score_id),
-				(select "id" from "m_fatigue_levels" where "code" = arow.before_fatigue_level_id)
+				(select "id" from "m_judgements" where "description" = arow.before_judge_name),
+				(select "id" from "m_fatigue_scores" where "description" = arow.before_fatigue_score_name),
+				(select "id" from "m_fatigue_levels" where "description" = arow.before_fatigue_level_name)
 			)
 			returning id into before_;
 		else
@@ -63,7 +60,7 @@ begin
 		end if;
 		raise INFO 'before id:%', before_;
 		-- Region after measure insert
-		if arow.after_timestamp is not null and not arow.after_timestamp = '' then
+		if arow.after_timestamp is not null then
 			insert into t_measurements (
 				"timestamp",
 				"body_temp",
@@ -85,9 +82,9 @@ begin
 				arow.after_fatigue_lh,
 				arow.after_fatigue_deviation,
 				arow.after_cnt,
-				(select "id" from "m_judgements" where "code" = arow.after_judge_id),
-				(select "id" from "m_fatigue_scores" where "code" = arow.after_fatigue_score_id),
-				(select "id" from "m_fatigue_levels" where "code" = arow.after_fatigue_level_id)
+				(select "id" from "m_judgements" where "description" = arow.after_judge_name),
+				(select "id" from "m_fatigue_scores" where "description" = arow.after_fatigue_score_name),
+				(select "id" from "m_fatigue_levels" where "description" = arow.after_fatigue_level_name)
 			)
 			returning id into after_;
 		else
@@ -107,12 +104,12 @@ begin
 		values (
 			before_,
 			after_,
-			arow."date"::timestamptz,
+			arow."date",
 			(select id from "m_companies" where "code" = arow.company_id),
 			(select id from "m_offices" where "code" = arow.office_id),
 			(select id from "m_users" where "code" = arow.user_id),
-			(select id from "m_crew_judge_types"  where "code" = arow.before_crew_judge_id),
-			(select id from "m_crew_judge_reasons" where "code" = arow.before_crew_judge_reason_id)
+			(select id from "m_crew_judge_types"  where "description" = arow.before_crew_judge_name),
+			(select id from "m_crew_judge_reasons" where "description" = arow.before_crew_judge_reason_name)
 		);
 	end loop;
 end;
