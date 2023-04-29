@@ -1,14 +1,27 @@
-#%% import
+# %% import
 import polars as pl
 
-# def event_rate_per_hour(df: pl.DataFrame):
-#     rows = df.count()
-#     print(rows)
-#     count_event = df.groupby([df["timestamp"].dt.hour]).event_id.count()
-#     print(count_event)
-#     return count_event / rows
+# %% read csv
+dtypes = {
+    "date": str,
+    "company_id": str,
+    "office_id": str,
+    "car_number": str,
+    "user_id": str,
+    "timestamp": pl.Datetime,
+    "event_id": str,
+    "event_name": str,
+    "latitude": float,
+    "longitude": float,
+    "d_kbn": int,
+    "videofilename1": str,
+    "videofilename2": str,
+}
+csv = pl.read_csv("./data/events/*.csv", dtypes=dtypes, try_parse_dates=False)
 
-#%% read csv
-csv = pl.read_csv("./data/events/events_20220101.csv")
-print(csv)
-# print(event_rate_per_hour(csv))
+# %% count by hour
+csv.select(pl.col("timestamp").dt.hour().alias("time_hour")).groupby("time_hour").agg(
+    [pl.count()]
+).sort("time_hour")
+
+# %%
