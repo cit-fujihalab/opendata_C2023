@@ -2,7 +2,12 @@
   "python.linting.enabled": true,
   "python.linting.lintOnSave": true,
   "python.formatting.provider": "black",
-  "cSpell.words": ["opendata", "virtualenvs"],
+  "cSpell.words": [
+    "dtypes",
+    "opendata",
+    "videofilename",
+    "virtualenvs"
+  ],
   "[python]": {
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
