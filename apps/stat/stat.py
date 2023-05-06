@@ -21,11 +21,6 @@ event_dtypes = {
 }
 events = pl.read_csv("./data/events/*.csv", dtypes=event_dtypes, try_parse_dates=False)
 
-# %% count event by hour
-events.select(pl.col("timestamp").dt.hour().alias("time_hour")).groupby(
-    "time_hour"
-).agg([pl.count()]).sort("time_hour")
-
 # %% read sensors_map csv
 positions_dtypes = {
     "date": str,
@@ -43,20 +38,8 @@ positions_dtypes = {
     "d_kbn": int,
 }
 
-# %%
-positions = pl.scan_csv(
-    "./data/sensors_map/*20220102.csv", dtypes=positions_dtypes, try_parse_dates=False
-)
-
-# %% count positions by hour
-positions.select(pl.col("timestamp").dt.hour().alias("time_hour")).groupby(
-    "time_hour"
-).agg([pl.count()]).sort("time_hour").collect()
 
 # %%
-date = dt.date(2022, 1, 1)
-
-
 def count_by_hour(date: dt.date):
     pos_csv = pl.scan_csv(
         "./data/sensors_map/sensors_map_" + date.strftime("%Y%m%d") + ".csv",
@@ -72,6 +55,7 @@ def count_by_hour(date: dt.date):
     )
 
 
+date = dt.date(2022, 1, 1)
 df = count_by_hour(date)
 while True:
     date = date + dt.timedelta(days=1)
