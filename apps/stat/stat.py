@@ -57,7 +57,7 @@ positions.select(pl.col("timestamp").dt.hour().alias("time_hour")).groupby(
 date = dt.date(2022, 1, 1)
 
 
-def get_df(date: dt.date):
+def count_by_hour(date: dt.date):
     pos_csv = pl.scan_csv(
         "./data/sensors_map/sensors_map_" + date.strftime("%Y%m%d") + ".csv",
         dtypes=positions_dtypes,
@@ -72,7 +72,7 @@ def get_df(date: dt.date):
     )
 
 
-df = get_df(date)
+df = count_by_hour(date)
 while True:
     date = date + dt.timedelta(days=1)
     if date > dt.date(2022, 12, 31):
@@ -82,7 +82,7 @@ while True:
         print(date)
 
     try:
-        df = pl.concat([df, get_df(date)])
+        df = pl.concat([df, count_by_hour(date)])
     except:
         pass
 
