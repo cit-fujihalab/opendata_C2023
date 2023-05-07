@@ -1,5 +1,6 @@
 # %% import
 import datetime as dt
+import json
 
 import polars as pl
 
@@ -48,7 +49,7 @@ positions_dtypes = {
 # %%
 def count_by_hour(date: dt.date):
     pos_csv = pl.scan_csv(
-        "./data/sensors_map/sensors_map_" + date.strftime("%Y%m%d") + ".csv",
+        POSITIONS_FILE + date.strftime("%Y%m%d") + ".csv",
         dtypes=positions_dtypes,
         try_parse_dates=False,
     )
@@ -88,12 +89,22 @@ events_hour = (
     .sort("time_hour")
 )
 
+events_type_hour = (
+    events.select(
+        [pl.col("timestamp").dt.hour().alias("time_hour"), pl.col("event_id")]
+    )
+    .groupby(["time_hour", "event_id"])
+    .agg([pl.count()])
+    .sort(["time_hour", "event_id"])
+)
+
 # %%
 event_rate_per_hour = events_hour["count"] / events_hour.sum(axis=0)["count"]
 position_rate_per_hour = (
     positions_hour["count"] / positions_hour["count"].cast(dtype=pl.UInt64).sum()
 )
 # %%
+timestamp = dt.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 pl.DataFrame(
     [
         events_hour["time_hour"].alias("hour"),
@@ -105,7 +116,21 @@ pl.DataFrame(
             "event_rate / position_rate"
         ),
     ],
-).write_csv(OUT_DIR + "/result_" + dt.datetime.now().strftime("%Y%m%d-%H%M%S") + ".csv")
+).write_csv(OUT_DIR + "/event_rate_" + timestamp + ".csv")
+
+events_type_hour.write_csv(OUT_DIR + "/event_type_rate_" + timestamp + ".csv")
+
+with open(OUT_DIR + "/" + timestamp + ".json", "w") as f:
+    json.dump(
+        {
+            "EVENTS_FILE": EVENTS_FILE,
+            "POSITIONS_FILE": POSITIONS_FILE,
+            "START_DATE": START_DATE.strftime("%Y%m%d"),
+            "END_DATE": END_DATE.strftime("%Y%m%d"),
+        },
+        f,
+        indent=2,
+    )
 
 
 # %%
