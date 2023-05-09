@@ -106,6 +106,11 @@ events_user = events.select(
     [pl.col("user_id"), pl.col("timestamp"), pl.col("event_id")]
 ).sort(["user_id", "timestamp"])
 
+events_type_user = (
+    events.select([pl.col("user_id"), pl.col("event_id")])
+    .groupby(["user_id", "event_id"])
+    .agg([pl.count()])
+)
 
 # %%
 event_rate_per_hour = events_hour["count"] / events_hour.sum(axis=0)["count"]
@@ -131,6 +136,7 @@ pl.DataFrame(
 
 events_type_hour.write_csv(OUT_DIR + "/event_type_rate_" + timestamp + ".csv")
 events_user.write_csv(OUT_DIR + "/event_user_" + timestamp + ".csv")
+events_type_user.write_csv(OUT_DIR + "/event_type_user_" + timestamp + ".csv")
 
 with open(OUT_DIR + "/" + timestamp + ".json", "w") as f:
     json.dump(
