@@ -102,9 +102,7 @@ events_type_hour = (
     .sort(["time_hour", "event_id"])
 )
 
-events_user = events.select(
-    [pl.col("user_id"), pl.col("timestamp"), pl.col("event_id")]
-).sort(["user_id", "timestamp"])
+events_user = events.select([pl.col("user_id")]).groupby(["user_id"]).agg([pl.count()])
 
 events_type_user = (
     events.select([pl.col("user_id"), pl.col("event_id")])
