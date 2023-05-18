@@ -12,6 +12,7 @@ python = "^3.9"
 requests = "^2.28.2"
 python-dotenv = "^0.21.0"
 polars = "^0.17.7"
+matplotlib = "^3.7.1"
 
 
 [tool.poetry.group.dev.dependencies]

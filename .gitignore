@@ -133,3 +133,4 @@ others/
 data/
 out/*
 !.gitkeep
+*.png
