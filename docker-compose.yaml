@@ -14,3 +14,23 @@ services:
     # mem_limit: 10g
     # shm_size: 1g
     # cpus: 12
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    command: -c 'config_file=/etc/postgresql/postgresql.conf' 
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS}
+    mem_limit: 24g
+    volumes:
+      - e:/data:/var/mnt/sde
+      - f:/data:/var/mnt/sdf
+      - o:/data:/var/mnt/sdo
+      - p:/data:/var/mnt/sdp
+      - q:/data:/var/mnt/sdq
+      - z:/data:/var/mnt/sdz
+      - z:/db/data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./scripts/init:/docker-entrypoint-initdb.d 
