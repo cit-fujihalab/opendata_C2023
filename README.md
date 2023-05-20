@@ -30,3 +30,9 @@ $ poetry install
 
 pycaret が poetry だとうまく入らないので，pycaret は pip で．  
 Windows + Docker でかろうじて動作しているが，インタラクティブウィンドウの表示が一部おかしい．
+
+pip でのパッケージのインストールはこのコマンド．
+
+```shell
+$ pip install -r requirements.txt
+```
