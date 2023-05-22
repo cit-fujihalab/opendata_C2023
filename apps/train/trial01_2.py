@@ -205,7 +205,7 @@ s = setup(
 best = compare_models()
 
 # %%
-model = create_model("lightgbm")
+model = create_model("gbc")
 
 # %%
 evaluate_model(model)
