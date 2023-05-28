@@ -22,7 +22,7 @@ vital_dtypes = {
     "company_id": pl.Utf8,
     "office_id": pl.Utf8,
     "user_id": pl.Utf8,
-    "before_timestamp": pl.Utf8,
+    "before_timestamp": pl.Datetime,
     "before_judge_id": pl.Utf8,
     "before_judge_name": pl.Utf8,
     "before_body_temp": pl.Float32,
@@ -163,6 +163,7 @@ event_user_detail = (
         vitals.select(
             [
                 pl.col("user_id"),
+                pl.col("before_timestamp").dt.hour().alias("time_hour"),
                 pl.col("before_body_temp"),
                 pl.col("before_spo2"),
                 pl.col("before_sys"),
@@ -189,6 +190,7 @@ non_event_user_detail = (
         vitals.select(
             [
                 pl.col("user_id"),
+                pl.col("before_timestamp").dt.hour().alias("time_hour"),
                 pl.col("before_body_temp"),
                 pl.col("before_spo2"),
                 pl.col("before_sys"),
@@ -222,6 +224,7 @@ best = compare_models()
 model = create_model("ada")
 
 # %%
+model = tune_model(model)
 evaluate_model(model)
 
 # %%
