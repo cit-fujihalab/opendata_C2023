@@ -131,4 +131,6 @@ dmypy.json
 others/
 .history/
 data/
-out/
+out/*
+!.gitkeep
+*.png

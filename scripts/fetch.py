@@ -1,6 +1,5 @@
 import abc
 import datetime as dt
-import io
 import logging
 import multiprocessing
 import os
@@ -13,21 +12,19 @@ from typing import Any
 import requests
 
 
-class Api(abc.ABC):
+class BaseApi(abc.ABC):
     def __init__(self, key: str, base_uri: str) -> None:
         self.key = key
         self.base_uri = base_uri
 
     @property
-    @abc.abstractmethod
     def resource_name(self) -> str:
-        return ""
+        raise NotImplementedError()
 
-    def get(self, date: dt.datetime):
+    def get(self, zip_name: str):
         TEMP_DIR = "./tmp"
         OUT_DIR = "./data"
         params = {"acl:consumerKey": self.key}
-        zip_name = self.resource_name + "_" + date.strftime("%Y%m%d") + ".zip"
 
         logging.info("fetching " + zip_name)
 
@@ -76,27 +73,42 @@ class Api(abc.ABC):
             os.remove(TEMP_DIR + "/" + zip_name)
             logging.info("extracted " + zip_name)
 
-        multiprocessing.Process(target=async_extract).start()
+        p = multiprocessing.Process(target=async_extract)
+        p.start()
+        return p
 
 
-class VitalApi(Api):
+class ResourceApi(BaseApi):
+    def download(self, date: dt.date):
+        self.get(self.resource_name + "_" + date.strftime("%Y%m%d") + ".zip")
+
+
+class VitalApi(ResourceApi):
     resource_name = "vitals"  # type: ignore
 
 
-class EventApi(Api):
+class EventApi(ResourceApi):
     resource_name = "events"  # type: ignore
 
 
-class PositionApi(Api):
+class PositionApi(ResourceApi):
     resource_name = "sensors_map"  # type: ignore
 
 
-class SensorAccApi(Api):
+class SensorAccApi(ResourceApi):
     resource_name = "sensors_acc"  # type: ignore
 
 
-class DrivingVitalApi(Api):
+class DrivingVitalApi(ResourceApi):
     resource_name = "driving_vitals"  # type: ignore
+
+
+class CarApi(BaseApi):
+    resource_name = "masters"  # type: ignore
+
+
+class UserApi(BaseApi):
+    resource_name = "masters"  # type: ignore
 
 
 if __name__ == "__main__":
@@ -119,8 +131,11 @@ if __name__ == "__main__":
     while date < dt.datetime(2022, 12, 1):
         for api in [vital_api, event_api, sensor_api, position_api, driving_vital_api]:
             try:
-                api.get(date)
+                api.download(date)
             except:
                 logging.error(api.resource_name + " " + date.strftime("%Y%m%d"))
 
         date = date + dt.timedelta(days=1)
+
+    CarApi(os.environ["API_KEY"], BASE_URI).get("master_cars_202301.zip")
+    UserApi(os.environ["API_KEY"], BASE_URI).get("master_users_202301.zip")
