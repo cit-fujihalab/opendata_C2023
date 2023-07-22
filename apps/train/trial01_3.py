@@ -6,6 +6,7 @@ from pycaret.classification import compare_models, create_model, evaluate_model,
 EVENTS_USERS_FILE = "./out/event_type_user_2023-05-10 21-13-39.csv"
 VITALS_FILE = "./data/vitals/vitals_*.csv"
 CARS_FILE = "./data/master_cars_202301.csv"
+EVENTS_FILE = "./data/events/events_*.csv"
 USERS_FILE = "./data/master_users_202301.csv"
 DRIVING_VITALS_FILE = "./data/driving_vitals/driving_vitals_*.csv"
 POSITIONS_FILE = "./data/sensors_map/sensors_map_"
@@ -17,6 +18,7 @@ ds = DataSet(
     vital_file=VITALS_FILE,
     driving_vital_file=DRIVING_VITALS_FILE,
     car_file=CARS_FILE,
+    event_file=EVENTS_FILE,
     user_file=USERS_FILE,
     event_user_file=EVENTS_USERS_FILE,
 )

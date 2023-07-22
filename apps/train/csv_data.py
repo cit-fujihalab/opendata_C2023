@@ -87,6 +87,22 @@ user_dtypes = {
     "年代": pl.Utf8,
 }
 
+event_dtypes = {
+    "date": str,
+    "company_id": str,
+    "office_id": str,
+    "car_number": str,
+    "user_id": str,
+    "timestamp": pl.Datetime,
+    "event_id": str,
+    "event_name": str,
+    "latitude": float,
+    "longitude": float,
+    "d_kbn": int,
+    "videofilename1": str,
+    "videofilename2": str,
+}
+
 event_user_dtype = {
     "user_id": pl.Utf8,
     "event_id": pl.Utf8,
@@ -100,6 +116,7 @@ class DataSet:
         vital_file: str,
         driving_vital_file: str,
         car_file: str,
+        event_file: str,
         user_file: str,
         event_user_file: str,
     ) -> None:
@@ -121,6 +138,9 @@ class DataSet:
                 pl.col("排気量ℓ").alias("ventilation"),
             ]
         )
+
+        self.events = pl.scan_csv(event_file, dtypes=event_dtypes)
+
         self.users = pl.scan_csv(user_file, dtypes=car_dtypes).select(
             [
                 pl.col("user_id"),
