@@ -1,10 +1,10 @@
-version: '3.8'
+version: "3.8"
 
 services:
   dev-env:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/scripts/Dockerfile
     volumes:
       - ./:/var/projects
 
@@ -18,7 +18,7 @@ services:
   db:
     image: postgres:15
     container_name: postgres
-    command: -c 'config_file=/etc/postgresql/postgresql.conf' 
+    command: -c 'config_file=/etc/postgresql/postgresql.conf'
     ports:
       - 5432:5432
     environment:
@@ -33,4 +33,16 @@ services:
       - z:/data:/var/mnt/sdz
       - z:/db/data:/var/lib/postgresql/data
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./scripts/init:/docker-entrypoint-initdb.d 
+      - ./scripts/init:/docker-entrypoint-initdb.d
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    entrypoint: ["tail", "-f", "/dev/null"]
+    # volumes:
+    # - ./:/var/projects
+
+    # For Windows other drive
+    # - f:/data:/var/projects/data
+    # command: "tail -f /dev/null"
