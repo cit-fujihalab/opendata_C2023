@@ -134,3 +134,4 @@ data/
 out/*
 !.gitkeep
 *.png
+models/*

@@ -2,9 +2,10 @@
 import polars as pl
 from csv_data import DataSet
 from pycaret.classification import (
-    compare_models,
     create_model,
     evaluate_model,
+    finalize_model,
+    save_model,
     setup,
     tune_model,
 )
@@ -98,12 +99,12 @@ users = ds.users.select(user_features).collect()
 vital_features = [
     pl.col("user_id"),
     pl.col("before_timestamp").dt.hour().alias("time_hour"),
-    pl.col("before_body_temp"),
-    pl.col("before_spo2"),
-    pl.col("before_sys"),
-    pl.col("before_dia"),
-    pl.col("before_fatigue_lh"),
-    pl.col("before_fatigue_deviation"),
+    pl.col("before_body_temp").alias("body_temp"),
+    pl.col("before_spo2").alias("spo2"),
+    pl.col("before_sys").alias("sys"),
+    pl.col("before_dia").alias("dia"),
+    pl.col("before_fatigue_lh").alias("fatigue_lh"),
+    pl.col("before_fatigue_deviation").alias("fatigue_deviation"),
 ]
 
 vitals = ds.vitals.drop_nulls("before_timestamp").select(vital_features).collect()
@@ -113,7 +114,7 @@ vitals = ds.vitals.drop_nulls("before_timestamp").select(vital_features).collect
 def join_features(df_user: pl.DataFrame):
     return (
         df_user.join(vitals, on="user_id", how="inner")
-        .join(user_car, on="user_id", how="left")
+        .join(user_car, on="user_id", how="inner")
         .join(users, on="user_id", how="left")
     )
 
@@ -133,13 +134,16 @@ s = setup(
 )
 
 # %%
-best = compare_models()
+# best = compare_models()
 
 # %%
-model = create_model("ada")
+model = create_model("lr")
 
 # %%
 model = tune_model(model)
 evaluate_model(model)
+
+# %%
+save_model(finalize_model(model), "./models/save_test")
 
 # %%
