@@ -40,8 +40,9 @@ services:
       context: .
       dockerfile: ./docker/web/Dockerfile
     entrypoint: ["tail", "-f", "/dev/null"]
-    # volumes:
-    # - ./:/var/projects
+    volumes:
+      - ./apps:/opt/app/apps
+      - ./requirements.txt:/opt/app/requirements.txt
 
     # For Windows other drive
     # - f:/data:/var/projects/data
