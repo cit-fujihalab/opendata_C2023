@@ -75,34 +75,39 @@ class _TypeInput(TypedDict):
 
 
 class Model:
-    def __init__(self, cfg: _TypeConfig):
+    def __init__(self, cfg: _TypeConfig, verbose=False):
         self.__cfg = cfg
         self.__model = load_model(cfg["file"])
+        self.__verbose = verbose
 
     def __hash__(self) -> int:
         return hash(self.__cfg.values())
 
     def __call__(self, data: _TypeInput):
-        df_car = pd.DataFrame.from_dict(dict(data["car"]))
-        df_user = pd.DataFrame.from_dict(dict(data["user"]))
-        df_vital = pd.DataFrame.from_dict(dict(data["vital"]))
+        input_car = data["car"]
+        input_user = {
+            **data["user"],
+            "age": convert_age(data["user"]["age"][0]).to_str(),
+        }
+        input_vital = data["vital"]
+
+        df_car = pd.DataFrame.from_dict(dict(input_car))
+        df_user = pd.DataFrame.from_dict(dict(input_user))
+        df_vital = pd.DataFrame.from_dict(dict(input_vital))
+
+        inputs = pd.concat([df_car, df_user, df_vital], axis=1)
+        if self.__verbose:
+            print(inputs)
 
         return predict_model(
             self.__model,
-            pd.concat(
-                [
-                    df_car,
-                    df_user,
-                    df_vital,
-                ],
-                axis=1,
-            ),
+            inputs,
             raw_score=True,
-        )["prediction_score_0"].to_numpy()
+        )["prediction_score_1"].to_numpy()
 
 
 if __name__ == "__main__":
-    m = Model({"file": "./models/save_test"})
+    m = Model({"file": "./models/save_test"}, verbose=True)
 
     data: _TypeInput = {
         "car": {
@@ -112,18 +117,19 @@ if __name__ == "__main__":
             "depth": [468],
             "width": [169],
             "height": [186],
-            "ventilation": [1.99],
+            "ventilation": [3.99],
         },
-        "user": {"age": [24], "sex": ["男"]},
+        "user": {"age": [47], "sex": ["男"]},
         "vital": {
-            "time_hour": [1],
-            "body_temp": [36.5],
+            "time_hour": [5],
+            "body_temp": [37.5],
             "spo2": [98.0],
             "sys": [140.0],
             "dia": [96.0],
-            "fatigue_lh": [1.36],
+            "fatigue_lh": [2.06],
             "fatigue_deviation": [70.0],
         },
     }
     result = m(data)
     print(result)
+    hash(m)
