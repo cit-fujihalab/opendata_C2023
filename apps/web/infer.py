@@ -68,7 +68,7 @@ class _TypeInputUser(TypedDict):
     sex: List[Sex]
 
 
-class _TypeInput(TypedDict):
+class ModelInput(TypedDict):
     vital: _TypeInputVital
     car: _TypeInputCar
     user: _TypeInputUser
@@ -83,7 +83,7 @@ class Model:
     def __hash__(self) -> int:
         return hash(self.__cfg.values())
 
-    def __call__(self, data: _TypeInput):
+    def __call__(self, data: ModelInput):
         input_car = data["car"]
         input_user = {
             **data["user"],
@@ -109,7 +109,7 @@ class Model:
 if __name__ == "__main__":
     m = Model({"file": "./models/save_test"}, verbose=True)
 
-    data: _TypeInput = {
+    data: ModelInput = {
         "car": {
             "car_load": [1600],
             "max_load": [0],
