@@ -83,7 +83,7 @@ class Model:
     def __hash__(self) -> int:
         return hash(self.__cfg.values())
 
-    def __call__(self, data: ModelInput):
+    def __call__(self, data: ModelInput) -> float:
         input_car = data["car"]
         input_user = {
             **data["user"],
@@ -99,11 +99,15 @@ class Model:
         if self.__verbose:
             print(inputs)
 
-        return predict_model(
-            self.__model,
-            inputs,
-            raw_score=True,
-        )["prediction_score_1"].to_numpy()
+        return (
+            predict_model(
+                self.__model,
+                inputs,
+                raw_score=True,
+            )["prediction_score_1"]
+            .to_numpy()
+            .tolist()[0]
+        )
 
 
 if __name__ == "__main__":

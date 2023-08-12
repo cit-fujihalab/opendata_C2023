@@ -4,38 +4,100 @@ import streamlit as st
 
 @st.cache_resource()
 def get_model():
-    return infer.Model(cfg={"file": "./models/save_test"})
+    return infer.Model(cfg={"file": "./models/save_test"}, verbose=True)
 
 
 model = get_model()
 
-age = st.number_input("Age", min_value=25, max_value=69, format="%d")
-sex = st.selectbox("年齢", ("男", "女"), index=0) or "男"
+with st.container():
+    col1, col2 = st.columns(2)
+    with col1:
+        age = st.number_input("Age", min_value=25, max_value=69, format="%d")
+    with col2:
+        sex = st.selectbox("性別", ("男", "女"), index=0) or "男"
 
+with st.container():
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        max_load = st.number_input(
+            "最大積載量 [kg]", min_value=0, format="%d", value=1600, step=10
+        )
+    with col2:
+        car_load = st.number_input(
+            "車両重量 [kg]", min_value=0, format="%d", value=6270, step=10
+        )
+    with col3:
+        load = st.number_input(
+            "車両総重量 [kg]", min_value=0, format="%d", value=7980, step=10
+        )
 
-# plot_model(model, plot="cooks", display_format="streamlit")
+with st.container():
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        depth = st.number_input("全長 [cm]", min_value=0, format="%d", value=1040)
+    with col2:
+        width = st.number_input("全幅 [cm]", min_value=0, format="%d", value=249)
+    with col3:
+        height = st.number_input("全高 [cm]", min_value=0, format="%d", value=364)
+    with col4:
+        ventilation = st.number_input(
+            "全高排気量 [ℓ]", min_value=0.0, format="%f", value=6.4
+        )
 
-# predictions = predict_model(model)
+with st.container():
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        time_hour = st.number_input(
+            "始業時間(0~23) [時]", min_value=0, max_value=23, format="%d", value=9
+        )
+    with col2:
+        body_temp = st.number_input(
+            "体温 [℃]", min_value=0.0, format="%4.1f", value=36.8, step=0.1
+        )
+    with col3:
+        spo2 = st.number_input(
+            "血中酸素濃度 ", min_value=0.0, format="%f", value=93.0, step=0.1
+        )
+
+with st.container():
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        sys = st.number_input(
+            "最高血圧 ", min_value=0.0, format="%.1f", value=114.0, step=1.0
+        )
+    with col2:
+        dia = st.number_input(
+            "最低血圧 ", min_value=0.0, format="%.1f", value=88.0, step=1.0
+        )
+    with col3:
+        fatigue_lh = st.number_input(
+            "自律神経バランス", min_value=0.0, format="%2.1f", value=0.5, step=0.1
+        )
+    with col4:
+        fatigue_deviation = st.number_input(
+            "自律神経機能の偏差値", min_value=0.0, format="%f", value=49.0, step=1.0
+        )
+
 data: infer.ModelInput = {
     "car": {
-        "car_load": [1600],
-        "max_load": [0],
-        "load": [2040],
-        "depth": [468],
-        "width": [169],
-        "height": [186],
-        "ventilation": [3.99],
+        "car_load": [int(car_load)],
+        "max_load": [int(max_load)],
+        "load": [int(load)],
+        "depth": [int(depth)],
+        "width": [int(width)],
+        "height": [int(height)],
+        "ventilation": [ventilation],
     },
     "user": {"age": [int(age)], "sex": [sex]},
     "vital": {
-        "time_hour": [5],
-        "body_temp": [37.5],
-        "spo2": [98.0],
-        "sys": [140.0],
-        "dia": [96.0],
-        "fatigue_lh": [2.06],
-        "fatigue_deviation": [70.0],
+        "time_hour": [int(time_hour)],
+        "body_temp": [body_temp],
+        "spo2": [spo2],
+        "sys": [sys],
+        "dia": [dia],
+        "fatigue_lh": [fatigue_lh],
+        "fatigue_deviation": [fatigue_deviation],
     },
 }
 score = model(data)
-st.write(score)
+st.write("ヒヤリハット危険度：{:.0f}%".format(score * 100))
