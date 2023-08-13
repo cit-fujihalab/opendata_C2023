@@ -12,7 +12,7 @@ model = get_model()
 with st.container():
     col1, col2 = st.columns(2)
     with col1:
-        age = st.number_input("Age", min_value=25, max_value=69, format="%d")
+        age = st.number_input("年齢", min_value=25, max_value=69, format="%d")
     with col2:
         sex = st.selectbox("性別", ("男", "女"), index=0) or "男"
 
@@ -34,14 +34,14 @@ with st.container():
 with st.container():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        depth = st.number_input("全長 [cm]", min_value=0, format="%d", value=1040)
+        depth = st.number_input("全長 [cm]", min_value=0, format="%d", value=1040, step=10)
     with col2:
-        width = st.number_input("全幅 [cm]", min_value=0, format="%d", value=249)
+        width = st.number_input("全幅 [cm]", min_value=0, format="%d", value=250, step=10)
     with col3:
-        height = st.number_input("全高 [cm]", min_value=0, format="%d", value=364)
+        height = st.number_input("全高 [cm]", min_value=0, format="%d", value=360, step=10)
     with col4:
         ventilation = st.number_input(
-            "全高排気量 [ℓ]", min_value=0.0, format="%f", value=6.4
+            "全高排気量 [ℓ]", min_value=0.0, format="%.1f", value=6.4
         )
 
 with st.container():
@@ -56,26 +56,26 @@ with st.container():
         )
     with col3:
         spo2 = st.number_input(
-            "血中酸素濃度 ", min_value=0.0, format="%f", value=93.0, step=0.1
+            "血中酸素濃度 ", min_value=0.0, format="%.1f", value=97.5, step=0.1
         )
 
 with st.container():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         sys = st.number_input(
-            "最高血圧 ", min_value=0.0, format="%.1f", value=114.0, step=1.0
+            "最高血圧 ", min_value=0.0, format="%.0f", value=120.0, step=1.0
         )
     with col2:
         dia = st.number_input(
-            "最低血圧 ", min_value=0.0, format="%.1f", value=88.0, step=1.0
+            "最低血圧 ", min_value=0.0, format="%.0f", value=80.0, step=1.0
         )
     with col3:
         fatigue_lh = st.number_input(
-            "自律神経バランス", min_value=0.0, format="%2.1f", value=0.5, step=0.1
+            "自律神経バランス", min_value=0.0, format="%2.1f", value=1.4, step=0.1
         )
     with col4:
         fatigue_deviation = st.number_input(
-            "自律神経機能の偏差値", min_value=0.0, format="%f", value=49.0, step=1.0
+            "自律神経機能の偏差値", min_value=0.0, format="%.1f", value=50.0, step=1.0
         )
 
 data: infer.ModelInput = {
