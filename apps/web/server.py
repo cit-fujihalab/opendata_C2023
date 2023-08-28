@@ -10,18 +10,14 @@ def get_model():
 model = get_model()
 
 with st.container():
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         age = st.number_input("年齢", min_value=25, max_value=69, format="%d")
     with col2:
         sex = st.selectbox("性別", ("男", "女"), index=0)
-    with col3:
-        load = st.number_input(
-            "車両総重量 [kg]", min_value=0, format="%d", value=7980, step=10
-        )
 
 with st.container():
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         depth = st.number_input(
             "全長 [cm]", min_value=0, format="%d", value=1040, step=10
@@ -31,6 +27,10 @@ with st.container():
     with col3:
         height = st.number_input(
             "全高 [cm]", min_value=0, format="%d", value=360, step=10
+        )
+    with col4:
+        load = st.number_input(
+            "車両総重量 [kg]", min_value=0, format="%d", value=7980, step=10
         )
 
 with st.container():
