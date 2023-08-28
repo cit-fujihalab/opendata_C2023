@@ -39,10 +39,12 @@ services:
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile
-    entrypoint: ["tail", "-f", "/dev/null"]
     volumes:
-      - ./apps:/opt/app/apps
-      - ./requirements.txt:/opt/app/requirements.txt
+      - ./.streamlit:/opt/app/.streamlit
+      - ./models:/opt/app/models
+
+    ports:
+      - 8501:8501
 
     # For Windows other drive
     # - f:/data:/var/projects/data
