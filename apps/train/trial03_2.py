@@ -4,7 +4,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from pycaret.classification import *
 from sklearn.model_selection import train_test_split
 
-DATASET_FILE = "../../out/data2.csv"
+DATASET_FILE = "./data/dataset1.csv"
 
 x = pd.read_csv(DATASET_FILE)
 
@@ -66,3 +66,5 @@ p.to_csv("../../out/p.csv")
 
 # %%
 save_model(final_model, "./models/trial03_2_v001")
+
+# %%
