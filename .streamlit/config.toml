@@ -17,3 +17,6 @@ port = 8501
 
 # Default: "localhost"
 serverAddress = "0.0.0.0"
+
+[runner]
+showErrorDetails = false
