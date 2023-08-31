@@ -4,6 +4,7 @@ fileWatcherType = "poll"
 
 address ="0.0.0.0"
 port = 8501
+baseUrlPath = ""
 
 [browser]
 
@@ -16,7 +17,7 @@ port = 8501
 # - Open the browser
 
 # Default: "localhost"
-serverAddress = "0.0.0.0"
+# serverAddress = "0.0.0.0"
 
-[runner]
+[client]
 showErrorDetails = false

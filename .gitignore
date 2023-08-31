@@ -135,3 +135,4 @@ out/*
 models/*
 *.png
 !.gitkeep
+static/*

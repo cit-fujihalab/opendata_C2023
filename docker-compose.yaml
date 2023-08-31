@@ -42,6 +42,8 @@ services:
     volumes:
       - ./.streamlit:/opt/app/.streamlit
       - ./models:/opt/app/models
+    environment:
+      - STREAMLIT_BROWSER_SERVER_ADDRESS=${HOST_ADDRESS}
 
     ports:
       - 8501:8501
