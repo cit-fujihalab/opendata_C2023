@@ -1,19 +1,25 @@
 {
   "python.linting.enabled": true,
   "python.linting.lintOnSave": true,
-  "python.formatting.provider": "black",
   "cSpell.words": [
     "dtypes",
     "geopandas",
+    "imblearn",
     "opendata",
     "pycaret",
+    "sklearn",
+    "streamlit",
     "videofilename",
     "virtualenvs"
   ],
   "[python]": {
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": false,
+    }
   },
   "jupyter.notebookFileRoot": "${workspaceFolder}",
   "python.linting.mypyEnabled": true,

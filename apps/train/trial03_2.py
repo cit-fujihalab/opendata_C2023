@@ -1,10 +1,21 @@
 # %% import
+import os
+
 import pandas as pd
 from imblearn.under_sampling import RandomUnderSampler
-from pycaret.classification import *
+from pycaret.classification import (
+    compare_models,
+    create_model,
+    evaluate_model,
+    finalize_model,
+    predict_model,
+    save_model,
+    setup,
+    tune_model,
+)
 from sklearn.model_selection import train_test_split
 
-DATASET_FILE = "./data/dataset1.csv"
+DATASET_FILE = os.environ["DATASET_FILE"]
 
 x = pd.read_csv(DATASET_FILE)
 
@@ -62,9 +73,9 @@ final_model = finalize_model(model)
 p = predict_model(final_model, data=x_unseen)
 
 # %%
-p.to_csv("../../out/p.csv")
+p.to_csv("./out/pred.csv")
 
 # %%
-save_model(final_model, "./models/trial03_2_v001")
+save_model(final_model, os.environ["MODEL_FILE"])
 
 # %%
