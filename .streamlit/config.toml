@@ -21,3 +21,4 @@ baseUrlPath = ""
 
 [client]
 showErrorDetails = false
+# TODO: prod config
