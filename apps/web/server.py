@@ -14,7 +14,7 @@ with st.container():
     with col1:
         age = st.number_input("年齢", min_value=25, max_value=69, format="%d")
     with col2:
-        sex = st.selectbox("性別", ("男", "女"), index=0)
+        sex = st.selectbox("性別", ("男", "女"), index=0) or "男"
 
 with st.container():
     col1, col2, col3, col4 = st.columns(4)
@@ -63,8 +63,9 @@ with st.container():
             "自律神経機能の偏差値", min_value=0.0, format="%.1f", value=50.0, step=1.0
         )
 
-fatigue_level = st.selectbox(
-    "自律神経レベル", [fl.desc for fl in infer.fatigue_level_defs], index=0
+fatigue_level = (
+    st.selectbox("自律神経レベル", [fl.desc for fl in infer.fatigue_level_defs], index=0)
+    or "0"
 )
 
 
