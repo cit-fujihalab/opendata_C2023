@@ -1,11 +1,13 @@
+import os
 from typing import List, Literal, TypedDict
 
 import pandas as pd
 from pycaret.classification import load_model, predict_model
 
 
-class _TypeConfig(TypedDict):
+class _TypeModelConfig(TypedDict):
     file: str
+    verbose: bool
 
 
 Sex = Literal["男", "女"]
@@ -109,10 +111,10 @@ class ModelInput(TypedDict):
 
 
 class Model:
-    def __init__(self, cfg: _TypeConfig, verbose=False):
+    def __init__(self, cfg: _TypeModelConfig):
         self.__cfg = cfg
         self.__model = load_model(cfg["file"])
-        self.__verbose = verbose
+        self.__verbose = cfg["verbose"]
 
     def __hash__(self) -> int:
         return hash(self.__cfg.values())
@@ -155,7 +157,7 @@ class Model:
 
 
 if __name__ == "__main__":
-    m = Model({"file": "./models/trial03_2_v001"}, verbose=False)
+    m = Model({"file": os.environ["MODEL_FILE"], "verbose": False})
 
     data: ModelInput = {
         "car": {
