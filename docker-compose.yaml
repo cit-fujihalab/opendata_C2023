@@ -42,9 +42,17 @@ services:
     volumes:
       - ./.streamlit:/opt/app/.streamlit
       - ./models:/opt/app/models
+      - ./static:/opt/app/static
+      - ./apps:/opt/app/apps
     environment:
       - STREAMLIT_BROWSER_SERVER_ADDRESS=${HOST_ADDRESS}
-
+      - MODEL_FILE=${MODEL_FILE}
+    command:
+      [
+        "--server.runOnSave=True",
+        "--logger.level=debug",
+        "--server.fileWatcherType=poll",
+      ]
     ports:
       - 8501:8501
 

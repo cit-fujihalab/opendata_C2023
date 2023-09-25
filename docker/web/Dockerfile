@@ -19,6 +19,6 @@ WORKDIR $WORKDIR
 COPY --chown=$UID:$GID  requirements.txt $WORKDIR
 RUN pip install --user -r requirements.txt
 
-COPY --chown=app:app ./apps /opt/app/apps
+VOLUME [ "/opt/app/apps" ]
 
 ENTRYPOINT [ "streamlit", "run", "apps/web/inference_demo.py" ]
