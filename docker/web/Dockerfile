@@ -21,4 +21,4 @@ RUN pip install --user -r requirements.txt
 
 COPY --chown=app:app ./apps /opt/app/apps
 
-ENTRYPOINT [ "streamlit", "run", "apps/web/server.py" ]
+ENTRYPOINT [ "streamlit", "run", "apps/web/inference_demo.py" ]

@@ -1,6 +1,7 @@
 import streamlit.components.v1 as components
 
-components.html("""
+components.html(
+    """
 <html>
 <head>
     
@@ -98,4 +99,7 @@ components.html("""
         
 </script>
 </html>
-""", height=700, width=900)
+""",
+    height=700,
+    width=900,
+)
