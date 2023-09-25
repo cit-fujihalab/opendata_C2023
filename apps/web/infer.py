@@ -119,22 +119,20 @@ class Model:
     def __hash__(self) -> int:
         return hash(self.__cfg.values())
 
-    def __call__(self, data: ModelInput) -> float:
+    def __call__(self, x: ModelInput) -> float:
         input_car = {
-            **data["car"],
-            "total_weight": data["car"]["load"],
-            "length": data["car"]["depth"],
+            **x["car"],
+            "total_weight": x["car"]["load"],
+            "length": x["car"]["depth"],
         }
         input_user = {
-            **data["user"],
-            "generation_id": convert_age(data["user"]["age"][0]).to_id(),
-            "sex_id": 1 if data["user"]["sex"] == "男" else 2,
+            **x["user"],
+            "generation_id": convert_age(x["user"]["age"][0]).to_id(),
+            "sex_id": 1 if x["user"]["sex"] == "男" else 2,
         }
         input_vital = {
-            **data["vital"],
-            "fatigue_level_id": convert_fatigue_level(
-                data["vital"]["fatigue_level"][0]
-            ),
+            **x["vital"],
+            "fatigue_level_id": convert_fatigue_level(x["vital"]["fatigue_level"][0]),
         }
 
         df_car = pd.DataFrame.from_dict(dict(input_car))
