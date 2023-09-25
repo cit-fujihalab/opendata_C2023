@@ -1,6 +1,8 @@
 import streamlit as st
 from PIL import Image
 
+st.set_page_config(page_title="説明スライド")
+
 files = [
     "./static/1.jpg",
     "./static/2.jpg",

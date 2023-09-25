@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: ${REPOSITORY}:0.1
+    image: ${REPOSITORY}:0.2
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile.prod

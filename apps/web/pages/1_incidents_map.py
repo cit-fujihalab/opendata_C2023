@@ -1,4 +1,7 @@
+import streamlit as st
 import streamlit.components.v1 as components
+
+st.set_page_config(page_title="事故発生地点(北海道)")
 
 components.html(
     """

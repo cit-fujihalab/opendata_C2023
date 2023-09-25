@@ -3,6 +3,8 @@ import os
 import infer
 import streamlit as st
 
+st.set_page_config(page_title="ヒヤリハット危険度予測デモ")
+
 
 @st.cache_resource()
 def get_model():
