@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile.prod
+    restart: always
     volumes:
       - ./.streamlit:/opt/app/.streamlit
       - ./models:/opt/app/models
