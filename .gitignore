@@ -132,5 +132,7 @@ others/
 .history/
 data/
 out/*
-!.gitkeep
+models/*
 *.png
+!.gitkeep
+static/*

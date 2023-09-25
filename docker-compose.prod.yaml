@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  web:
+    image: ${REPOSITORY}:0.2
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile.prod
+    restart: always
+    volumes:
+      - ./.streamlit:/opt/app/.streamlit
+      - ./models:/opt/app/models
+      - ./static:/opt/app/static
+    environment:
+      - STREAMLIT_BROWSER_SERVER_ADDRESS=${HOST_ADDRESS:-localhost}
+      - MODEL_FILE=${MODEL_FILE}
+    ports:
+      - 80:8501
