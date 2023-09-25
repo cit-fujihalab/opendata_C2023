@@ -1,10 +1,14 @@
+import os
+
 import infer
 import streamlit as st
 
 
 @st.cache_resource()
 def get_model():
-    return infer.Model(cfg={"file": "./models/trial03_2_v001"}, verbose=True)
+    return infer.Model(
+        cfg={"file": os.environ["MODEL_FILE"], "verbose": True},
+    )
 
 
 model = get_model()
