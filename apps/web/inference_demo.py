@@ -95,3 +95,5 @@ data: infer.ModelInput = {
 }
 score = model(data)
 st.write("ヒヤリハット危険度：{:.0f}%".format(score * 100))
+
+st.markdown("[ソースコード](https://github.com/cit-fujihalab/opendata_C2023)")
