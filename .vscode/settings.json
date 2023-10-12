@@ -1,6 +1,9 @@
 {
-  "python.linting.enabled": true,
-  "python.linting.lintOnSave": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll": true
+  },
   "cSpell.words": [
     "dtypes",
     "geopandas",
@@ -18,16 +21,13 @@
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.codeActionsOnSave": {
       "source.fixAll": true,
-      "source.organizeImports": false,
+      "source.organizeImports": false
     }
   },
-  "jupyter.notebookFileRoot": "${workspaceFolder}",
-  "python.linting.mypyEnabled": true,
-  "python.linting.pylintEnabled": false,
   "python.analysis.typeCheckingMode": "basic",
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
   "isort.check": true,
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.fixAll": true
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
