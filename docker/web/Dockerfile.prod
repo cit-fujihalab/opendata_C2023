@@ -20,6 +20,5 @@ COPY --chown=$UID:$GID  requirements.txt $WORKDIR
 RUN pip install --user -r requirements.txt
 
 COPY --chown=$UID:$GID ./apps/web /opt/app/apps/web
-COPY --chown=$UID:$GID ./models /opt/app/models
 
 ENTRYPOINT [ "streamlit", "run", "apps/web/Demo.py" ]
