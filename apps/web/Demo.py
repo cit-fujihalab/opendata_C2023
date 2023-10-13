@@ -26,13 +26,15 @@ with st.container():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         depth = st.number_input(
-            "全長 [cm]", min_value=0, format="%d", value=1040, step=10
+            "車両全長 [cm]", min_value=0, format="%d", value=1040, step=10
         )
     with col2:
-        width = st.number_input("全幅 [cm]", min_value=0, format="%d", value=250, step=10)
+        width = st.number_input(
+            "車両全幅 [cm]", min_value=0, format="%d", value=250, step=10
+        )
     with col3:
         height = st.number_input(
-            "全高 [cm]", min_value=0, format="%d", value=360, step=10
+            "車両全高 [cm]", min_value=0, format="%d", value=360, step=10
         )
     with col4:
         load = st.number_input(
@@ -95,3 +97,5 @@ data: infer.ModelInput = {
 }
 score = model(data)
 st.write("ヒヤリハット危険度：{:.0f}%".format(score * 100))
+
+st.markdown("[ソースコード](https://github.com/cit-fujihalab/opendata_C2023)")

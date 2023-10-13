@@ -40,6 +40,7 @@ services:
       context: .
       dockerfile: ./docker/web/Dockerfile
     volumes:
+      - ./.vscode:/opt/app/.vscode
       - ./.streamlit:/opt/app/.streamlit
       - ./models:/opt/app/models
       - ./static:/opt/app/static
@@ -56,6 +57,5 @@ services:
     ports:
       - 8501:8501
 
-    # For Windows other drive
-    # - f:/data:/var/projects/data
-    # command: "tail -f /dev/null"
+    # For attach VSCode
+    # entrypoint: ["tail", "-f", "/dev/null"]
