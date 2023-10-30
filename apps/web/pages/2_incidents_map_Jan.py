@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="事故発生地点(北海道)")
+st.set_page_config(page_title="高速道路上の事故発生地点2021年1月")
 
 components.html(
 """
