@@ -23,7 +23,9 @@ services:
       - 5432:5432
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_INITDB_WALDIR=/var/mnt/sdo/wal
     mem_limit: 24g
+    cpus: 12
     volumes:
       - e:/data:/var/mnt/sde
       - f:/data:/var/mnt/sdf

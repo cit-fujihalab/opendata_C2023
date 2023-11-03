@@ -82,7 +82,7 @@ CREATE TABLE postgres.temp_vitals (
 	after_cnt int2 NULL
 ) TABLESPACE tbsp_z;
 
-CREATE OR REPLACE VIEW temp_dv AS 
+CREATE OR REPLACE VIEW temp_dv AS
 	SELECT 
 		tdv."date" "date",
 		tdv."timestamp" "timestamp",
@@ -142,7 +142,7 @@ CREATE OR REPLACE VIEW temp_pos AS
 	LEFT OUTER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
 	LEFT OUTER JOIN m_users mu ON mu.code = tsm.user_id;
 
-CREATE OR REPLACE VIEW temp_vt AS 
+CREATE OR REPLACE VIEW temp_vt AS
 	SELECT 
 		tv."date",
 		mc.id "company_id",
@@ -198,7 +198,7 @@ $procedure$;
 
 CREATE OR REPLACE PROCEDURE postgres.move_positions() LANGUAGE plpgsql AS $procedure$
 BEGIN
-	SET work_mem to '10GB';
+	SET work_mem to '16GB';
 	CALL insert_unique('temp_sensors_map', 'company_id', 'm_companies', 'code');
 	CALL insert_unique('temp_sensors_map', 'office_id', 'm_offices', 'code');
 	CALL insert_unique('temp_sensors_map', 'car_number', 'm_car_numbers', 'code');
@@ -219,5 +219,61 @@ BEGIN
 		"d_kbn")
 		SELECT * FROM temp_pos;
 		TRUNCATE TABLE postgres.temp_sensors_map CONTINUE IDENTITY RESTRICT;
+END;
+$procedure$;
+
+
+CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
+DECLARE
+	temp_id varchar;
+BEGIN
+	SET work_mem to '4GB';
+	temp_id =  '_' || replace(gen_random_uuid()::varchar,'-', '_');
+	EXECUTE 'CREATE UNLOGGED TABLE temp_sensors_map' || temp_id ||  ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
+	EXECUTE 'TRUNCATE temp_sensors_map' || temp_id ||  ' CONTINUE IDENTITY RESTRICT;';
+
+	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name  || ''' with csv header encoding ''UTF8'';';
+
+	CALL insert_unique('temp_sensors_map' || temp_id, 'company_id', 'm_companies', 'code');
+	CALL insert_unique('temp_sensors_map' || temp_id, 'office_id', 'm_offices', 'code');
+	CALL insert_unique('temp_sensors_map' || temp_id, 'car_number', 'm_car_numbers', 'code');
+	CALL insert_unique('temp_sensors_map' || temp_id, 'user_id', 'm_users', 'code');
+
+	EXECUTE 'INSERT INTO t_positions (
+		"date",
+		"timestamp",
+		"company_id",
+		"office_id",
+		"car_number_id",
+		"user_id",
+		"latitude",
+		"longitude",
+		"speed",
+		"mapped_latitude",
+		"mapped_longitude",
+		"distance",
+		"d_kbn")
+		SELECT * FROM (
+			SELECT 
+			tsm."date" "date",
+			tsm."timestamp" "timestamp",
+			mc.id "company_id",
+			mo.id "office_id",
+			mcn.id "car_number_id",
+			mu.id "user_id",
+			tsm.latitude,
+			tsm.longitude,
+			tsm.speed,
+			tsm.mapped_latitude,
+			tsm.mapped_longitude,
+			tsm.distance,
+			tsm.d_kbn 
+			FROM temp_sensors_map' || temp_id || ' tsm
+			LEFT OUTER JOIN m_companies mc ON mc.code = tsm.company_id
+			LEFT OUTER JOIN m_offices mo ON mo.code = tsm.office_id
+			LEFT OUTER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
+			LEFT OUTER JOIN m_users mu ON mu.code = tsm.user_id
+		) temp_pos;';
+	EXECUTE 'DROP TABLE temp_sensors_map' || temp_id || ';';
 END;
 $procedure$;
