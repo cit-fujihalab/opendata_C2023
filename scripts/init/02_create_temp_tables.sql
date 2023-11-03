@@ -227,13 +227,14 @@ CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING)
 DECLARE
 	temp_id varchar;
 BEGIN
-	SET work_mem to '4GB';
-	temp_id =  '_' || replace(gen_random_uuid()::varchar,'-', '_');
-	EXECUTE 'CREATE UNLOGGED TABLE temp_sensors_map' || temp_id ||  ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
-	EXECUTE 'TRUNCATE temp_sensors_map' || temp_id ||  ' CONTINUE IDENTITY RESTRICT;';
+	
+	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
+	EXECUTE 'CREATE UNLOGGED TABLE temp_sensors_map' || temp_id || ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
+	EXECUTE 'TRUNCATE temp_sensors_map' || temp_id || ' CONTINUE IDENTITY RESTRICT;';
 
-	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name  || ''' with csv header encoding ''UTF8'';';
+	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name || ''' with csv header encoding ''UTF8'';';
 
+	SET work_mem to '8GB';
 	CALL insert_unique('temp_sensors_map' || temp_id, 'company_id', 'm_companies', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'office_id', 'm_offices', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'car_number', 'm_car_numbers', 'code');

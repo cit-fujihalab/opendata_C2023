@@ -9,6 +9,10 @@ CREATE TABLESPACE tbsp_z LOCATION '/var/mnt/sdz';
 
 ALTER TABLESPACE tbsp_z SET (random_page_cost=1.1);
 ALTER TABLESPACE tbsp_z SET (effective_io_concurrency=200);
+ALTER TABLESPACE tbsp_e SET (effective_io_concurrency=1);
+ALTER TABLESPACE tbsp_o SET (effective_io_concurrency=1);
+ALTER TABLESPACE tbsp_p SET (effective_io_concurrency=1);
+ALTER TABLESPACE tbsp_q SET (effective_io_concurrency=1);
 
 CREATE TABLE postgres.m_car_numbers (
 	id serial NOT NULL,
@@ -84,7 +88,7 @@ CREATE TABLE postgres.m_users (
 	code varchar(30) NOT NULL,
 	CONSTRAINT m_users_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z,
 	CONSTRAINT m_users_un UNIQUE (code) USING INDEX TABLESPACE tbsp_z
-) TABLESPACE tbsp_z;
+) TABLESPACE tbsp_q;
 
 CREATE TABLE postgres.t_events(
 	id serial4 NOT NULL,

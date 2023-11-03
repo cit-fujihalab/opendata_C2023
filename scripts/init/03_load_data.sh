@@ -3,7 +3,7 @@ find /var/mnt/sdf/events -name "*.csv" | xargs -t -P40 -IFILENAME psql -U postgr
 find /var/mnt/sdf/vitals -name "*.csv" | xargs -t -P40 -IFILENAME psql -U postgres -d postgres -c "copy temp_vitals from 'FILENAME' with csv header encoding 'UTF8'"
 
 
-find /var/mnt/sdf/sensors_map -name "*2022*.csv" | xargs -t -P12 -IFILENAME psql -U postgres -d postgres -c "CALL postgres.insert_file('FILENAME')"
+find /var/mnt/sdf/sensors_map -name "*2022*.csv" | xargs -t -P20 -IFILENAME psql -U postgres -d postgres -c "CALL postgres.insert_file('FILENAME')"
 # psql -U postgres -d postgres -c "CALL move_positions();"
 
 # find /var/mnt/sdf/sensors_map -name "*202202*.csv" | xargs -t -P40 -IFILENAME psql -U postgres -d postgres -c "copy temp_sensors_map from 'FILENAME' with csv header encoding 'UTF8'"
