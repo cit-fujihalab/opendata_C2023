@@ -234,7 +234,7 @@ BEGIN
 
 	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name || ''' with csv header encoding ''UTF8'';';
 
-	SET work_mem to '8GB';
+	SET work_mem to '4GB';
 	CALL insert_unique('temp_sensors_map' || temp_id, 'company_id', 'm_companies', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'office_id', 'm_offices', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'car_number', 'm_car_numbers', 'code');
