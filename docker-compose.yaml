@@ -23,19 +23,19 @@ services:
       - 5432:5432
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
-      - POSTGRES_INITDB_WALDIR=/var/mnt/sdo/wal
-    mem_limit: 24g
+    mem_limit: 28g
     cpus: 12
     volumes:
+      - c:/data:/var/mnt/sdc
       - e:/data:/var/mnt/sde
       - f:/data:/var/mnt/sdf
       - o:/data:/var/mnt/sdo
       - p:/data:/var/mnt/sdp
       - q:/data:/var/mnt/sdq
-      - z:/data:/var/mnt/sdz
-      - z:/db/data:/var/lib/postgresql/data
+      - o:/db/data:/var/lib/postgresql/data
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./scripts/init:/docker-entrypoint-initdb.d
+      # - ./scripts/init:/docker-entrypoint-initdb.d
+      - /mnt/wsl/ssd1/data:/var/mnt/sdz/data
 
   web:
     build:

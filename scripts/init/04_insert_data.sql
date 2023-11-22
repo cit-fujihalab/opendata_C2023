@@ -1,3 +1,6 @@
+SET work_mem to '8GB';
+SET temp_tablespaces='tbsp_c';
+
 CALL insert_unique('temp_driving_vitals', 'company_id', 'm_companies', 'code');
 CALL insert_unique('temp_driving_vitals', 'office_id', 'm_offices', 'code');
 CALL insert_unique('temp_driving_vitals', 'car_number', 'm_car_numbers', 'code');
@@ -48,22 +51,6 @@ INSERT INTO t_events (
 	"video_file_name2",
 	"d_kbn")
 	SELECT * FROM temp_ev;
-
-INSERT INTO t_positions (
-	"date",
-	"timestamp",
-	"company_id",
-	"office_id",
-	"car_number_id",
-	"user_id",
-	"latitude",
-	"longitude",
-	"speed",
-	"mapped_latitude",
-	"mapped_longitude",
-	"distance",
-	"d_kbn")
-	SELECT * FROM temp_pos;
 
 CREATE OR REPLACE PROCEDURE postgres.insert_vitals() LANGUAGE plpgsql AS $procedure$
 DECLARE

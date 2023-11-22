@@ -1,3 +1,8 @@
+SET work_mem to '8GB';
+SET maintenance_work_mem to '8GB';
+SET temp_tablespaces='tbsp_c';
+ANALYZE VERBOSE;
+
 -- postgres.t_events index
 CREATE INDEX t_events_type_id_idx ON postgres.t_events USING btree ("type_id") TABLESPACE tbsp_z;
 CREATE INDEX t_events_timestamp_idx ON postgres.t_events USING btree ("timestamp") TABLESPACE tbsp_z;
@@ -43,4 +48,3 @@ ALTER TABLE postgres.t_vitals ADD CONSTRAINT t_vitals_fk_6 FOREIGN KEY (before_c
 
 -- postgres.t_vitals index
 CREATE INDEX t_vitals_timestamp_idx ON postgres.t_vitals USING btree ("date") TABLESPACE tbsp_z;
-COMMIT;

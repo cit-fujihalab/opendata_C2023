@@ -1,3 +1,5 @@
+SET temp_tablespaces='tbsp_c';
+
 CREATE TABLE postgres.temp_driving_vitals (
 	"date" varchar(8) NULL,
 	company_id varchar(7) NULL,
@@ -121,27 +123,6 @@ CREATE OR REPLACE VIEW temp_ev AS
 	LEFT OUTER JOIN m_users mu ON mu.code = tev.user_id
 	LEFT OUTER JOIN m_event_types met ON met.code = tev.event_id;
 
-CREATE OR REPLACE VIEW temp_pos AS 
-	SELECT 
-		tsm."date" "date",
-		tsm."timestamp" "timestamp",
-		mc.id "company_id",
-		mo.id "office_id",
-		mcn.id "car_number_id",
-		mu.id "user_id",
-		tsm.latitude,
-		tsm.longitude,
-		tsm.speed,
-		tsm.mapped_latitude,
-		tsm.mapped_longitude,
-		tsm.distance,
-		tsm.d_kbn 
-	FROM temp_sensors_map tsm
-	LEFT OUTER JOIN m_companies mc ON mc.code = tsm.company_id
-	LEFT OUTER JOIN m_offices mo ON mo.code = tsm.office_id
-	LEFT OUTER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
-	LEFT OUTER JOIN m_users mu ON mu.code = tsm.user_id;
-
 CREATE OR REPLACE VIEW temp_vt AS
 	SELECT 
 		tv."date",
@@ -189,56 +170,31 @@ CREATE OR REPLACE PROCEDURE postgres.insert_unique(IN from_table character varyi
  LANGUAGE plpgsql
 AS $procedure$
 BEGIN
-	raise INFO 'from_table: % to_table: %', from_table, to_table;
+	raise INFO '[%] from_table: % to_table: %', pg_backend_pid(), from_table, to_table;
 	EXECUTE 'INSERT INTO ' || to_table || '(' || to_column || ')
 		(SELECT DISTINCT (' || from_column || ') FROM ' || from_table || ' WHERE ' || from_column || ' IS NOT NULL) 
 		ON CONFLICT DO NOTHING;';
 END;
 $procedure$;
 
-CREATE OR REPLACE PROCEDURE postgres.move_positions() LANGUAGE plpgsql AS $procedure$
-BEGIN
-	SET work_mem to '16GB';
-	CALL insert_unique('temp_sensors_map', 'company_id', 'm_companies', 'code');
-	CALL insert_unique('temp_sensors_map', 'office_id', 'm_offices', 'code');
-	CALL insert_unique('temp_sensors_map', 'car_number', 'm_car_numbers', 'code');
-	CALL insert_unique('temp_sensors_map', 'user_id', 'm_users', 'code');
-	INSERT INTO t_positions (
-		"date",
-		"timestamp",
-		"company_id",
-		"office_id",
-		"car_number_id",
-		"user_id",
-		"latitude",
-		"longitude",
-		"speed",
-		"mapped_latitude",
-		"mapped_longitude",
-		"distance",
-		"d_kbn")
-		SELECT * FROM temp_pos;
-		TRUNCATE TABLE postgres.temp_sensors_map CONTINUE IDENTITY RESTRICT;
-END;
-$procedure$;
-
-
 CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
 DECLARE
 	temp_id varchar;
 BEGIN
-	
+	raise INFO '[%] inserting file: %', pg_backend_pid(), file_name;
+	SET temp_tablespaces='tbsp_c';
+
 	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
 	EXECUTE 'CREATE UNLOGGED TABLE temp_sensors_map' || temp_id || ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
 	EXECUTE 'TRUNCATE temp_sensors_map' || temp_id || ' CONTINUE IDENTITY RESTRICT;';
-
 	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name || ''' with csv header encoding ''UTF8'';';
 
-	SET work_mem to '4GB';
+	SET work_mem to '14GB';
 	CALL insert_unique('temp_sensors_map' || temp_id, 'company_id', 'm_companies', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'office_id', 'm_offices', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'car_number', 'm_car_numbers', 'code');
 	CALL insert_unique('temp_sensors_map' || temp_id, 'user_id', 'm_users', 'code');
+	raise INFO '[%] master prepared', pg_backend_pid();
 
 	EXECUTE 'INSERT INTO t_positions (
 		"date",
