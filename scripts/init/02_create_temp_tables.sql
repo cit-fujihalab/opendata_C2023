@@ -196,23 +196,33 @@ BEGIN
 	CALL insert_unique('temp_sensors_map' || temp_id, 'user_id', 'm_users', 'code');
 	raise INFO '[%] master prepared', pg_backend_pid();
 
-	EXECUTE 'WITH drive_joined AS (
+	EXECUTE 'CREATE UNLOGGED TABLE temp_pos' || temp_id || ' TABLESPACE tbsp_z AS 
 		SELECT
-			"mu"."id",
-			"mo"."id",
-			"mcn"."id",
-			"mc"."id"
+			"tsm"."date" "date",
+			"tsm"."timestamp" "timestamp",
+			"tsm"."latitude" "latitude",
+			"tsm"."longitude" "longitude",
+			"tsm"."speed" "speed",
+			"tsm"."mapped_latitude" "mapped_latitude",
+			"tsm"."mapped_longitude" "mapped_longitude",
+			"tsm"."distance" "distance",
+			"tsm"."d_kbn" "d_kbn",
+			"mu"."id" "user_id",
+			"mo"."id" "office_id",
+			"mcn"."id" "car_number_id",
+			"mc"."id" "company_id"
 		FROM "temp_sensors_map' || temp_id || '" AS "tsm"
-		INNER JOIN "m_offices" "mo" ON "mo"."code" = "tsm"."office_id"
 		INNER JOIN "m_users" "mu" ON "mu"."code" = "tsm"."user_id"
-		INNER JOIN "m_companies" "mc" ON "mc"."code" = "tsm"."company_id"
+		INNER JOIN "m_offices" "mo" ON "mo"."code" = "tsm"."office_id"
 		INNER JOIN "m_car_numbers" "mcn" ON "mcn"."code" = "tsm"."car_number"
-	)
-	INSERT INTO "t_drive" ("user_id", "office_id", "car_number_id", "company_id")
-	SELECT * FROM drive_joined
-	ON CONFLICT DO NOTHING;';
-	
-	raise INFO '[%] drive_joined prepared', pg_backend_pid();
+		INNER JOIN "m_companies" "mc" ON "mc"."code" = "tsm"."company_id";';
+	EXECUTE 'DROP TABLE temp_sensors_map' || temp_id || ';';
+	raise INFO '[%] temp_table prepared', pg_backend_pid();
+
+	EXECUTE 'INSERT INTO "t_drive" ("user_id", "office_id", "car_number_id", "company_id")
+		SELECT "user_id", "office_id", "car_number_id", "company_id" FROM temp_pos' || temp_id || '
+		ON CONFLICT DO NOTHING;';
+	raise INFO '[%] insert prepared', pg_backend_pid();
 
 	EXECUTE 'INSERT INTO t_positions (
 		"date",
@@ -224,30 +234,24 @@ BEGIN
 		"mapped_latitude",
 		"mapped_longitude",
 		"distance",
-		"d_kbn")
-		SELECT * FROM (
-			SELECT
-			tsm."date" "date",
-			tsm."timestamp" "timestamp",
+		"d_kbn"
+		) SELECT
+			tp."date" "date",
+			tp."timestamp" "timestamp",
 			td.id "drive_id",
-			tsm.latitude,
-			tsm.longitude,
-			tsm.speed,
-			tsm.mapped_latitude,
-			tsm.mapped_longitude,
-			tsm.distance,
-			tsm.d_kbn
-			FROM temp_sensors_map' || temp_id || ' tsm
-			INNER JOIN m_companies mc ON mc.code = tsm.company_id
-			INNER JOIN m_offices mo ON mo.code = tsm.office_id
-			INNER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
-			INNER JOIN m_users mu ON mu.code = tsm.user_id
-			INNER JOIN t_drive td ON td.company_id = mc.id
-				AND td.office_id = mo.id
-				AND td.car_number_id = mcn.id
-				AND td.user_id = mu.id
-		) temp_pos;';
-	EXECUTE 'DROP TABLE temp_sensors_map' || temp_id || ';';
+			tp.latitude,
+			tp.longitude,
+			tp.speed,
+			tp.mapped_latitude,
+			tp.mapped_longitude,
+			tp.distance,
+			tp.d_kbn
+		FROM temp_pos' || temp_id || ' tp
+		INNER JOIN t_drive td ON td.user_id = tp.user_id
+			AND td.office_id = tp.office_id
+			AND td.car_number_id = tp.car_number_id
+			AND td.company_id = tp.company_id;';
+	EXECUTE 'DROP TABLE temp_pos' || temp_id || ';';
 	raise INFO '[%] loaded file: %', pg_backend_pid(), file_name;
 END;
 $procedure$;

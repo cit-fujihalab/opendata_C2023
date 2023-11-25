@@ -15,14 +15,11 @@ ALTER TABLE postgres.t_events ADD CONSTRAINT t_events_fk_3 FOREIGN KEY (user_id)
 ALTER TABLE postgres.t_events ADD CONSTRAINT t_events_fk_4 FOREIGN KEY (type_id) REFERENCES postgres.m_event_types(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- postgres.t_positions index
-CREATE INDEX t_positions_user_id_idx ON postgres.t_positions USING btree ("user_id") TABLESPACE tbsp_z;
+CREATE INDEX t_positions_drive_id_idx ON postgres.t_positions USING btree ("drive_id") TABLESPACE tbsp_z;
 CREATE INDEX t_positions_timestamp_idx ON postgres.t_positions USING btree ("timestamp") TABLESPACE tbsp_z;
 
 -- postgres.t_positions foreign keys
-ALTER TABLE postgres.t_positions ADD CONSTRAINT t_positions_fk FOREIGN KEY (company_id) REFERENCES postgres.m_companies(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE postgres.t_positions ADD CONSTRAINT t_positions_fk_1 FOREIGN KEY (office_id) REFERENCES postgres.m_offices(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE postgres.t_positions ADD CONSTRAINT t_positions_fk_2 FOREIGN KEY (car_number_id) REFERENCES postgres.m_car_numbers(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE postgres.t_positions ADD CONSTRAINT t_positions_fk_3 FOREIGN KEY (user_id) REFERENCES postgres.m_users(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE postgres.t_positions ADD CONSTRAINT t_positions_fk FOREIGN KEY (drive_id) REFERENCES postgres.t_drive(id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- postgres.t_driving_vitals foreign keys
 ALTER TABLE postgres.t_driving_vitals ADD CONSTRAINT t_driving_vitals_fk FOREIGN KEY (company_id) REFERENCES postgres.m_companies(id) ON DELETE RESTRICT ON UPDATE RESTRICT;

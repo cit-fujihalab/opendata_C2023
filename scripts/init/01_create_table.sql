@@ -84,7 +84,7 @@ CREATE TABLE postgres.m_users (
 	id serial NOT NULL ,
 	code varchar(30) NOT NULL,
 	CONSTRAINT m_users_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z,
-	CONSTRAINT m_users_un UNIQUE (code) USING INDEX TABLESPACE tbsp_z
+	CONSTRAINT m_users_un UNIQUE (code) WITH (fillfactor=70) USING INDEX TABLESPACE tbsp_z
 ) WITH (fillfactor=70) TABLESPACE tbsp_z;
 
 CREATE TABLE postgres.t_events(
@@ -124,16 +124,16 @@ CREATE TABLE postgres.t_accelerations(
 CREATE TABLE postgres.t_drive (
 	id bigserial NOT NULL,
 	user_id int8 NOT NULL,
-	office_id int4 NOT NULL,
+	office_id int2 NOT NULL,
 	car_number_id int4 NOT NULL,
 	company_id int2 NOT NULL,
 	CONSTRAINT t_drive_pk PRIMARY KEY (id),
 	CONSTRAINT t_drive_un UNIQUE (user_id, office_id, car_number_id, company_id)
 ) TABLESPACE tbsp_z;
 CREATE INDEX t_drive_user_id_idx ON postgres.t_events USING btree ("user_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
-CREATE INDEX t_drive_office_id_idx ON postgres.t_events USING btree ("office_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+-- CREATE INDEX t_drive_office_id_idx ON postgres.t_events USING btree ("office_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
 CREATE INDEX t_drive_car_number_id_idx ON postgres.t_events USING btree ("car_number_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
-CREATE INDEX t_drive_company_id_idx ON postgres.t_events USING btree ("company_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+-- CREATE INDEX t_drive_company_id_idx ON postgres.t_events USING btree ("company_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
 
 
 CREATE TABLE postgres.t_positions (
