@@ -23,19 +23,20 @@ services:
       - 5432:5432
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
-    mem_limit: 28g
+      - POSTGRES_USER=postgres
+    mem_limit: 18g
+    user: ${USER_ID}:${GROUP_ID}
     cpus: 12
     volumes:
-      - c:/data:/var/mnt/sdc
-      - e:/data:/var/mnt/sde
-      - f:/data:/var/mnt/sdf
-      - o:/data:/var/mnt/sdo
-      - p:/data:/var/mnt/sdp
-      - q:/data:/var/mnt/sdq
-      - o:/db/data:/var/lib/postgresql/data
+      - /etc/passwd:/etc/passwd:ro
+      - /mnt/wsl/ssd1/data1:/var/lib/postgresql/data
+      - /mnt/wsl/ssd1/data2:/var/mnt/sdz
+      - /mnt/wsl/hdd1/data:/var/mnt/sdo
+      - /mnt/wsl/hdd2/data:/var/mnt/sdp
+      - /mnt/wsl/hdd3/data:/var/mnt/sdq
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      # - ./scripts/init:/docker-entrypoint-initdb.d
-      - /mnt/wsl/ssd1/data:/var/mnt/sdz/data
+      - ./scripts/init:/docker-entrypoint-initdb.d
+      - /mnt/f/data:/var/mnt/sdf
 
   web:
     build:
@@ -58,6 +59,5 @@ services:
       ]
     ports:
       - 8501:8501
-
     # For attach VSCode
     # entrypoint: ["tail", "-f", "/dev/null"]

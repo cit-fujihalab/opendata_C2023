@@ -1,5 +1,5 @@
-SET work_mem to '8GB';
-SET temp_tablespaces='tbsp_c';
+SET work_mem to '16GB';
+SET temp_tablespaces='tbsp_z';
 
 CALL insert_unique('temp_driving_vitals', 'company_id', 'm_companies', 'code');
 CALL insert_unique('temp_driving_vitals', 'office_id', 'm_offices', 'code');

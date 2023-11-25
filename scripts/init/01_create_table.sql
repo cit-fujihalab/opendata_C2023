@@ -1,23 +1,15 @@
-SHOW shared_buffers;
-SHOW work_mem;
 CREATE SCHEMA postgres;
-CREATE TABLESPACE tbsp_c LOCATION '/var/mnt/sdc';
-CREATE TABLESPACE tbsp_e LOCATION '/var/mnt/sde';
+
 CREATE TABLESPACE tbsp_o LOCATION '/var/mnt/sdo';
 CREATE TABLESPACE tbsp_p LOCATION '/var/mnt/sdp';
 CREATE TABLESPACE tbsp_q LOCATION '/var/mnt/sdq';
-CREATE TABLESPACE tbsp_z LOCATION '/mnt/wsl/sdz';
+CREATE TABLESPACE tbsp_z LOCATION '/var/mnt/sdz';
 
-ALTER TABLESPACE tbsp_c SET (random_page_cost=1.1);
-ALTER TABLESPACE tbsp_c SET (effective_io_concurrency=0);
 ALTER TABLESPACE tbsp_z SET (random_page_cost=1.5);
-ALTER TABLESPACE tbsp_z SET (effective_io_concurrency=0);
-ALTER TABLESPACE tbsp_e SET (effective_io_concurrency=0);
-ALTER TABLESPACE tbsp_o SET (effective_io_concurrency=0);
-ALTER TABLESPACE tbsp_p SET (effective_io_concurrency=0);
-ALTER TABLESPACE tbsp_q SET (effective_io_concurrency=0);
-
-SET temp_tablespaces='tbsp_c';
+ALTER TABLESPACE tbsp_z SET (effective_io_concurrency=100);
+ALTER TABLESPACE tbsp_o SET (effective_io_concurrency=1);
+ALTER TABLESPACE tbsp_p SET (effective_io_concurrency=1);
+ALTER TABLESPACE tbsp_q SET (effective_io_concurrency=1);
 
 CREATE TABLE postgres.m_car_numbers (
 	id serial NOT NULL,
@@ -92,12 +84,8 @@ CREATE TABLE postgres.m_users (
 	id serial NOT NULL ,
 	code varchar(30) NOT NULL,
 	CONSTRAINT m_users_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z,
-	CONSTRAINT m_users_un UNIQUE (id, code) USING INDEX TABLESPACE tbsp_z
-) PARTITION BY HASH (id);
-
-CREATE TABLE m_users_p0 PARTITION OF m_users FOR VALUES WITH (MODULUS 3, REMAINDER 0) TABLESPACE tbsp_o;
-CREATE TABLE m_users_p1 PARTITION OF m_users FOR VALUES WITH (MODULUS 3, REMAINDER 1) TABLESPACE tbsp_p;
-CREATE TABLE m_users_p2 PARTITION OF m_users FOR VALUES WITH (MODULUS 3, REMAINDER 2) TABLESPACE tbsp_q;
+	CONSTRAINT m_users_un UNIQUE (code) USING INDEX TABLESPACE tbsp_z
+) TABLESPACE tbsp_z;
 
 CREATE TABLE postgres.t_events(
 	id serial4 NOT NULL,
@@ -132,6 +120,16 @@ CREATE TABLE postgres.t_accelerations(
 	CONSTRAINT t_accelerations_fk_1
 		FOREIGN KEY (user_id) REFERENCES postgres.m_users(id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) TABLESPACE tbsp_o;
+
+CREATE TABLE postgres.t_drive (
+	id bigserial NOT NULL,
+	user_id int8 NOT NULL,
+	office_id int4 NOT NULL,
+	car_number_id int4 NOT NULL,
+	company_id int2 NOT NULL,
+	CONSTRAINT t_drive_pk PRIMARY KEY (id),
+	CONSTRAINT t_drive_un UNIQUE (user_id, office_id, car_number_id, company_id)
+) TABLESPACE tbsp_z;
 
 CREATE TABLE postgres.t_positions (
 	"date" varchar(8) NOT NULL,
@@ -678,7 +676,7 @@ CREATE TABLE postgres.t_measurements (
 	fatigue_deviation float4 NULL,
 	cnt int2 NOT NULL,
 	CONSTRAINT t_measurements_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z
-) TABLESPACE tbsp_q;
+) TABLESPACE tbsp_p;
 
 CREATE TABLE postgres.t_vitals (
 	id serial8 NOT NULL,

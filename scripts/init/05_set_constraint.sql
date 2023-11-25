@@ -1,6 +1,6 @@
-SET work_mem to '8GB';
+SET work_mem to '16GB';
 SET maintenance_work_mem to '8GB';
-SET temp_tablespaces='tbsp_c';
+SET temp_tablespaces='tbsp_z';
 ANALYZE VERBOSE;
 
 -- postgres.t_events index
