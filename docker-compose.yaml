@@ -27,6 +27,7 @@ services:
     mem_limit: 18g
     user: ${USER_ID}:${GROUP_ID}
     cpus: 12
+    shm_size: 6g
     volumes:
       - /etc/passwd:/etc/passwd:ro
       - /mnt/wsl/ssd1/data1:/var/lib/postgresql/data

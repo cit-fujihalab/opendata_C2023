@@ -29,7 +29,7 @@ CREATE TABLE postgres.temp_events (
 	videofilename2 varchar(70) NULL
 ) TABLESPACE tbsp_z;
 
-CREATE TABLE postgres.temp_sensors_map (
+CREATE UNLOGGED TABLE postgres.temp_sensors_map (
 	"date" varchar(8) NULL,
 	company_id varchar(7) NULL,
 	office_id varchar(12) NULL,
@@ -177,26 +177,21 @@ BEGIN
 END;
 $procedure$;
 
-CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
+CREATE OR REPLACE PROCEDURE postgres.move_positions() LANGUAGE plpgsql AS $procedure$
 DECLARE
 	temp_id varchar;
 BEGIN
 	SET work_mem to '10GB';
-	raise INFO '[%] loading file: %', pg_backend_pid(), file_name;
 	SET temp_tablespaces='tbsp_z';
 
-	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
-	EXECUTE 'CREATE UNLOGGED TABLE temp_sensors_map' || temp_id || ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
-	EXECUTE 'TRUNCATE temp_sensors_map' || temp_id || ' CONTINUE IDENTITY RESTRICT;';
-	EXECUTE 'COPY temp_sensors_map' || temp_id || ' from ''' || file_name || ''' with csv header encoding ''UTF8'';';
-
-	CALL insert_unique('temp_sensors_map' || temp_id, 'company_id', 'm_companies', 'code');
-	CALL insert_unique('temp_sensors_map' || temp_id, 'office_id', 'm_offices', 'code');
-	CALL insert_unique('temp_sensors_map' || temp_id, 'car_number', 'm_car_numbers', 'code');
-	CALL insert_unique('temp_sensors_map' || temp_id, 'user_id', 'm_users', 'code');
+	CALL insert_unique('temp_sensors_map', 'company_id', 'm_companies', 'code');
+	CALL insert_unique('temp_sensors_map', 'office_id', 'm_offices', 'code');
+	CALL insert_unique('temp_sensors_map', 'car_number', 'm_car_numbers', 'code');
+	CALL insert_unique('temp_sensors_map', 'user_id', 'm_users', 'code');
 	raise INFO '[%] master prepared', pg_backend_pid();
 
-	EXECUTE 'CREATE UNLOGGED TABLE temp_pos' || temp_id || ' TABLESPACE tbsp_z AS 
+	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
+	EXECUTE 'CREATE UNLOGGED TABLE temp_pos' || temp_id || ' TABLESPACE tbsp_z AS
 		SELECT
 			"tsm"."date" "date",
 			"tsm"."timestamp" "timestamp",
@@ -211,18 +206,17 @@ BEGIN
 			"mo"."id" "office_id",
 			"mcn"."id" "car_number_id",
 			"mc"."id" "company_id"
-		FROM "temp_sensors_map' || temp_id || '" AS "tsm"
+		FROM "temp_sensors_map" AS "tsm"
 		INNER JOIN "m_users" "mu" ON "mu"."code" = "tsm"."user_id"
 		INNER JOIN "m_offices" "mo" ON "mo"."code" = "tsm"."office_id"
 		INNER JOIN "m_car_numbers" "mcn" ON "mcn"."code" = "tsm"."car_number"
 		INNER JOIN "m_companies" "mc" ON "mc"."code" = "tsm"."company_id";';
-	EXECUTE 'DROP TABLE temp_sensors_map' || temp_id || ';';
 	raise INFO '[%] temp_table prepared', pg_backend_pid();
 
 	EXECUTE 'INSERT INTO "t_drive" ("user_id", "office_id", "car_number_id", "company_id")
 		SELECT "user_id", "office_id", "car_number_id", "company_id" FROM temp_pos' || temp_id || '
 		ON CONFLICT DO NOTHING;';
-	raise INFO '[%] insert prepared', pg_backend_pid();
+	raise INFO '[%] t_drive prepared', pg_backend_pid();
 
 	EXECUTE 'INSERT INTO t_positions (
 		"date",
@@ -252,6 +246,7 @@ BEGIN
 			AND td.car_number_id = tp.car_number_id
 			AND td.company_id = tp.company_id;';
 	EXECUTE 'DROP TABLE temp_pos' || temp_id || ';';
-	raise INFO '[%] loaded file: %', pg_backend_pid(), file_name;
+	TRUNCATE temp_sensors_map CONTINUE IDENTITY RESTRICT;
+	raise INFO '[%] inserted', pg_backend_pid();
 END;
 $procedure$;
