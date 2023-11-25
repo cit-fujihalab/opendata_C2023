@@ -85,7 +85,7 @@ CREATE TABLE postgres.m_users (
 	code varchar(30) NOT NULL,
 	CONSTRAINT m_users_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z,
 	CONSTRAINT m_users_un UNIQUE (code) USING INDEX TABLESPACE tbsp_z
-) TABLESPACE tbsp_z;
+) WITH (fillfactor=70) TABLESPACE tbsp_z;
 
 CREATE TABLE postgres.t_events(
 	id serial4 NOT NULL,
@@ -130,14 +130,16 @@ CREATE TABLE postgres.t_drive (
 	CONSTRAINT t_drive_pk PRIMARY KEY (id),
 	CONSTRAINT t_drive_un UNIQUE (user_id, office_id, car_number_id, company_id)
 ) TABLESPACE tbsp_z;
+CREATE INDEX t_drive_user_id_idx ON postgres.t_events USING btree ("user_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+CREATE INDEX t_drive_office_id_idx ON postgres.t_events USING btree ("office_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+CREATE INDEX t_drive_car_number_id_idx ON postgres.t_events USING btree ("car_number_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+CREATE INDEX t_drive_company_id_idx ON postgres.t_events USING btree ("company_id") WITH (fillfactor=70) TABLESPACE tbsp_z;
+
 
 CREATE TABLE postgres.t_positions (
 	"date" varchar(8) NOT NULL,
 	"timestamp" timestamptz NOT NULL,
-	company_id int2 NOT NULL,
-	office_id int2 NOT NULL,
-	car_number_id int4 NOT NULL,
-	user_id int4 NOT NULL,
+	drive_id int8 NOT NULL,
 	latitude float8 NOT NULL,
 	longitude float8 NOT NULL,
 	speed float4 NOT NULL,

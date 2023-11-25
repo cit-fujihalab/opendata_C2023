@@ -4,7 +4,7 @@ find /var/mnt/sdf/vitals -name "*.csv" | xargs -t -P40 -IFILENAME psql -U postgr
 
 
 psql -U postgres -d postgres -c "ANALYZE;" &
-find /var/mnt/sdf/sensors_map -name "*2022010*.csv" | xargs -t -P10 -IFILENAME psql -U postgres -d postgres -c "CALL postgres.insert_file('FILENAME')"
+find /var/mnt/sdf/sensors_map -name "*2022010*.csv" | xargs -t -P1 -IFILENAME psql -U postgres -d postgres -c "CALL postgres.insert_file('FILENAME')"
 # psql -U postgres -d postgres -c "ANALYZE;" &
 
 # find /var/mnt/sdf/sensors_map -name "*202202*.csv" | xargs -t -P1 -IFILENAME psql -U postgres -d postgres -c "CALL postgres.insert_file('FILENAME')"

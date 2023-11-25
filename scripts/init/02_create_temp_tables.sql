@@ -199,7 +199,7 @@ BEGIN
 	EXECUTE 'WITH drive_joined AS (
 		SELECT
 			"mu"."id",
-			"mo"."office_id",
+			"mo"."id",
 			"mcn"."id",
 			"mc"."id"
 		FROM "temp_sensors_map' || temp_id || '" AS "tsm"
@@ -208,17 +208,16 @@ BEGIN
 		INNER JOIN "m_companies" "mc" ON "mc"."code" = "tsm"."company_id"
 		INNER JOIN "m_car_numbers" "mcn" ON "mcn"."code" = "tsm"."car_number"
 	)
-	INSERT INTO "t_drive" ("user_id", "car_number_id", "company_id")
+	INSERT INTO "t_drive" ("user_id", "office_id", "car_number_id", "company_id")
 	SELECT * FROM drive_joined
 	ON CONFLICT DO NOTHING;';
+	
+	raise INFO '[%] drive_joined prepared', pg_backend_pid();
 
 	EXECUTE 'INSERT INTO t_positions (
 		"date",
 		"timestamp",
-		"company_id",
-		"office_id",
-		"car_number_id",
-		"user_id",
+		"drive_id",
 		"latitude",
 		"longitude",
 		"speed",
@@ -227,25 +226,26 @@ BEGIN
 		"distance",
 		"d_kbn")
 		SELECT * FROM (
-			SELECT 
+			SELECT
 			tsm."date" "date",
 			tsm."timestamp" "timestamp",
-			mc.id "company_id",
-			mo.id "office_id",
-			mcn.id "car_number_id",
-			mu.id "user_id",
+			td.id "drive_id",
 			tsm.latitude,
 			tsm.longitude,
 			tsm.speed,
 			tsm.mapped_latitude,
 			tsm.mapped_longitude,
 			tsm.distance,
-			tsm.d_kbn 
+			tsm.d_kbn
 			FROM temp_sensors_map' || temp_id || ' tsm
-			LEFT OUTER JOIN m_companies mc ON mc.code = tsm.company_id
-			LEFT OUTER JOIN m_offices mo ON mo.code = tsm.office_id
-			LEFT OUTER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
-			LEFT OUTER JOIN m_users mu ON mu.code = tsm.user_id
+			INNER JOIN m_companies mc ON mc.code = tsm.company_id
+			INNER JOIN m_offices mo ON mo.code = tsm.office_id
+			INNER JOIN m_car_numbers mcn ON mcn.code = tsm.car_number
+			INNER JOIN m_users mu ON mu.code = tsm.user_id
+			INNER JOIN t_drive td ON td.company_id = mc.id
+				AND td.office_id = mo.id
+				AND td.car_number_id = mcn.id
+				AND td.user_id = mu.id
 		) temp_pos;';
 	EXECUTE 'DROP TABLE temp_sensors_map' || temp_id || ';';
 	raise INFO '[%] loaded file: %', pg_backend_pid(), file_name;
