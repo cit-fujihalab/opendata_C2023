@@ -24,6 +24,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_USER=postgres
+      - POSTGRES_INITDB_WALDIR=/var/mnt/sdr/wal
     mem_limit: 18g
     user: ${USER_ID}:${GROUP_ID}
     cpus: 12
@@ -35,6 +36,7 @@ services:
       - /mnt/wsl/hdd1/data:/var/mnt/sdo
       - /mnt/wsl/hdd2/data:/var/mnt/sdp
       - /mnt/wsl/hdd3/data:/var/mnt/sdq
+      - /mnt/wsl/hdd4/data:/var/mnt/sdr/wal
       - ./postgresql.conf:/etc/postgresql/postgresql.conf
       - ./scripts/init:/docker-entrypoint-initdb.d
       - /mnt/f/data:/var/mnt/sdf

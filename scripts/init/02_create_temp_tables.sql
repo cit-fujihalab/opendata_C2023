@@ -177,48 +177,78 @@ BEGIN
 END;
 $procedure$;
 
-CREATE OR REPLACE PROCEDURE postgres.move_positions() LANGUAGE plpgsql AS $procedure$
-DECLARE
-	temp_id varchar;
+CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
 BEGIN
-	SET work_mem to '10GB';
+	-- SET work_mem to '5GB';
 	SET temp_tablespaces='tbsp_z';
 
-	CALL insert_unique('temp_sensors_map', 'company_id', 'm_companies', 'code');
-	CALL insert_unique('temp_sensors_map', 'office_id', 'm_offices', 'code');
-	CALL insert_unique('temp_sensors_map', 'car_number', 'm_car_numbers', 'code');
-	CALL insert_unique('temp_sensors_map', 'user_id', 'm_users', 'code');
-	raise INFO '[%] master prepared', pg_backend_pid();
+	CREATE TEMP TABLE temp_sensors_map_ (LIKE temp_sensors_map) TABLESPACE tbsp_z;
+	TRUNCATE temp_sensors_map_ CONTINUE IDENTITY RESTRICT;
 
-	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
-	EXECUTE 'CREATE UNLOGGED TABLE temp_pos' || temp_id || ' TABLESPACE tbsp_z AS
-		SELECT
-			"tsm"."date" "date",
-			"tsm"."timestamp" "timestamp",
-			"tsm"."latitude" "latitude",
-			"tsm"."longitude" "longitude",
-			"tsm"."speed" "speed",
-			"tsm"."mapped_latitude" "mapped_latitude",
-			"tsm"."mapped_longitude" "mapped_longitude",
-			"tsm"."distance" "distance",
-			"tsm"."d_kbn" "d_kbn",
-			"mu"."id" "user_id",
-			"mo"."id" "office_id",
-			"mcn"."id" "car_number_id",
-			"mc"."id" "company_id"
-		FROM "temp_sensors_map" AS "tsm"
-		INNER JOIN "m_users" "mu" ON "mu"."code" = "tsm"."user_id"
-		INNER JOIN "m_offices" "mo" ON "mo"."code" = "tsm"."office_id"
-		INNER JOIN "m_car_numbers" "mcn" ON "mcn"."code" = "tsm"."car_number"
-		INNER JOIN "m_companies" "mc" ON "mc"."code" = "tsm"."company_id";';
-	raise INFO '[%] temp_table prepared', pg_backend_pid();
+	raise INFO '[%] loading file: %', pg_backend_pid(), file_name;
+	EXECUTE 'COPY temp_sensors_map_ from ''' || file_name || ''' with csv header encoding ''UTF8'';';
+	ANALYZE temp_sensors_map_;
+	raise INFO '[%] csv copied: %', pg_backend_pid(), file_name;
 
-	EXECUTE 'INSERT INTO "t_drive" ("user_id", "office_id", "car_number_id", "company_id")
-		SELECT "user_id", "office_id", "car_number_id", "company_id" FROM temp_pos' || temp_id || '
-		ON CONFLICT DO NOTHING;';
-	raise INFO '[%] t_drive prepared', pg_backend_pid();
-
-	EXECUTE 'INSERT INTO t_positions (
+	WITH "master_unique_pre" AS (
+		SELECT DISTINCT "company_id", "office_id", "car_number", "user_id" FROM temp_sensors_map_
+	),
+	"companies" AS (
+		INSERT INTO m_companies ("code") 
+			SELECT DISTINCT ("company_id") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+	),
+	"offices" AS (
+		INSERT INTO m_offices ("code") 
+			SELECT DISTINCT ("office_id") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+	),
+	"car_numbers" AS (
+		INSERT INTO m_car_numbers ("code") 
+			SELECT DISTINCT ("car_number") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+	),
+	"users" AS (
+		INSERT INTO m_users ("code")
+			SELECT DISTINCT ("user_id") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+		),
+	"master_prepared" AS (
+		SELECT 
+			"companies"."id" "company_id",
+			"companies"."code" "company_code",
+			"offices"."id" "office_id",
+			"offices"."code" "office_code",
+			"car_numbers"."id" "car_number_id",
+			"car_numbers"."code" "car_number_code",
+			"users"."id" "user_id",
+			"users"."code" "user_code"
+		FROM master_unique_pre mup
+			INNER JOIN	"companies" ON "companies"."code" = mup."company_id"
+			INNER JOIN	"offices" ON "offices"."code" = mup."office_id"
+			INNER JOIN	"car_numbers" ON "car_numbers"."code" = mup."car_number"
+			INNER JOIN	"users" ON "users"."code" = mup."user_id"
+	),
+	"drives" AS (
+		INSERT INTO t_drive ("company_id", "office_id", "car_number_id", "user_id")
+			SELECT 
+				"company_id",
+				"office_id",
+				"car_number_id",
+				"user_id"
+			FROM master_prepared mup
+		ON CONFLICT ON CONSTRAINT t_drive_un DO UPDATE SET 
+			"company_id"=EXCLUDED."company_id",
+			"office_id"=EXCLUDED."office_id",
+			"car_number_id"=EXCLUDED."car_number_id",
+			"user_id"=EXCLUDED."user_id"
+		RETURNING *
+	)
+	INSERT INTO t_positions (
 		"date",
 		"timestamp",
 		"drive_id",
@@ -230,23 +260,27 @@ BEGIN
 		"distance",
 		"d_kbn"
 		) SELECT
-			tp."date" "date",
-			tp."timestamp" "timestamp",
-			td.id "drive_id",
-			tp.latitude,
-			tp.longitude,
-			tp.speed,
-			tp.mapped_latitude,
-			tp.mapped_longitude,
-			tp.distance,
-			tp.d_kbn
-		FROM temp_pos' || temp_id || ' tp
-		INNER JOIN t_drive td ON td.user_id = tp.user_id
-			AND td.office_id = tp.office_id
-			AND td.car_number_id = tp.car_number_id
-			AND td.company_id = tp.company_id;';
-	EXECUTE 'DROP TABLE temp_pos' || temp_id || ';';
-	TRUNCATE temp_sensors_map CONTINUE IDENTITY RESTRICT;
-	raise INFO '[%] inserted', pg_backend_pid();
+			ts."date" "date",
+			ts."timestamp" "timestamp",
+			drives.id "drive_id",
+			ts.latitude,
+			ts.longitude,
+			ts.speed,
+			ts.mapped_latitude,
+			ts.mapped_longitude,
+			ts.distance,
+			ts.d_kbn
+		FROM temp_sensors_map_ ts
+		INNER JOIN master_prepared mp ON 
+			mp.company_code = ts.company_id
+			AND mp.office_code = ts.office_id
+			AND mp.car_number_code = ts.car_number
+			AND mp.user_code = ts.user_id
+		INNER JOIN drives ON
+			drives.office_id = mp.office_id
+			AND drives.car_number_id = mp.car_number_id
+			AND drives.company_id = mp.company_id
+			AND drives.user_id = mp.user_id;
+	raise INFO '[%] inserted: %', pg_backend_pid(), file_name;
 END;
 $procedure$;
