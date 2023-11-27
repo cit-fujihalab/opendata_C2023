@@ -179,20 +179,29 @@ $procedure$;
 
 CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
 BEGIN
-	SET work_mem to '2GB';
+	SET work_mem to '1GB';
 	SET temp_tablespaces='tbsp_z';
 
 	CREATE TEMP TABLE temp_sensors_map_ (LIKE temp_sensors_map) TABLESPACE tbsp_z;
 	TRUNCATE temp_sensors_map_ CONTINUE IDENTITY RESTRICT;
 
 	raise INFO '[%] loading file: %', pg_backend_pid(), file_name;
-	EXECUTE 'COPY temp_sensors_map_ from ''' || file_name || ''' with csv header encoding ''UTF8'';';
+
+	BEGIN
+		EXECUTE 'COPY temp_sensors_map_ from ''' || file_name || ''' with csv header encoding ''UTF8'';';
+	EXCEPTION 
+		WHEN invalid_text_representation THEN
+			RAISE NOTICE 'invalid_text_representation in processing %', file_name;
+			RETURN;
+	END;
+
 	ANALYZE temp_sensors_map_;
 	raise INFO '[%] csv copied: %', pg_backend_pid(), file_name;
 
 	CREATE TEMP TABLE "master_unique_pre" AS (
 		SELECT DISTINCT "company_id", "office_id", "car_number", "user_id" FROM temp_sensors_map_
 	);
+	raise INFO '[%] distinct finished: %', pg_backend_pid(), file_name;
 
 	LOCK TABLE m_companies, m_offices, m_car_numbers, m_users IN EXCLUSIVE MODE;
 	CREATE TEMP TABLE "prepared_master" AS (
@@ -237,6 +246,7 @@ BEGIN
 	);
 	COMMIT;
 	DROP TABLE master_unique_pre;
+	raise INFO '[%] master inserted: %', pg_backend_pid(), file_name;
 
 	LOCK TABLE t_drive IN EXCLUSIVE MODE;
 	WITH drives AS (
