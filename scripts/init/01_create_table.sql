@@ -74,7 +74,7 @@ CREATE TABLE postgres.m_judgements (
 ) TABLESPACE tbsp_z;
 
 CREATE TABLE postgres.m_offices (
-	id smallserial NOT NULL,
+	id serial NOT NULL,
 	code varchar(12) NOT NULL,
 	CONSTRAINT m_offices_pk PRIMARY KEY (id) USING INDEX TABLESPACE tbsp_z,
 	CONSTRAINT m_offices_un UNIQUE (code) USING INDEX TABLESPACE tbsp_z
@@ -124,7 +124,7 @@ CREATE TABLE postgres.t_accelerations(
 CREATE TABLE postgres.t_drive (
 	id bigserial NOT NULL,
 	user_id int8 NOT NULL,
-	office_id int2 NOT NULL,
+	office_id int4 NOT NULL,
 	car_number_id int4 NOT NULL,
 	company_id int2 NOT NULL,
 	CONSTRAINT t_drive_pk PRIMARY KEY (id),

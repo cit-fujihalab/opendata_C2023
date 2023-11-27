@@ -179,7 +179,7 @@ $procedure$;
 
 CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
 BEGIN
-	-- SET work_mem to '5GB';
+	SET work_mem to '2GB';
 	SET temp_tablespaces='tbsp_z';
 
 	CREATE TEMP TABLE temp_sensors_map_ (LIKE temp_sensors_map) TABLESPACE tbsp_z;
@@ -190,35 +190,37 @@ BEGIN
 	ANALYZE temp_sensors_map_;
 	raise INFO '[%] csv copied: %', pg_backend_pid(), file_name;
 
-	WITH "master_unique_pre" AS (
+	CREATE TEMP TABLE "master_unique_pre" AS (
 		SELECT DISTINCT "company_id", "office_id", "car_number", "user_id" FROM temp_sensors_map_
-	),
-	"companies" AS (
-		INSERT INTO m_companies ("code") 
-			SELECT DISTINCT ("company_id") FROM master_unique_pre
-			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
-			RETURNING *
-	),
-	"offices" AS (
-		INSERT INTO m_offices ("code") 
-			SELECT DISTINCT ("office_id") FROM master_unique_pre
-			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
-			RETURNING *
-	),
-	"car_numbers" AS (
-		INSERT INTO m_car_numbers ("code") 
-			SELECT DISTINCT ("car_number") FROM master_unique_pre
-			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
-			RETURNING *
-	),
-	"users" AS (
-		INSERT INTO m_users ("code")
-			SELECT DISTINCT ("user_id") FROM master_unique_pre
+	);
+
+	LOCK TABLE m_companies, m_offices, m_car_numbers, m_users IN EXCLUSIVE MODE;
+	CREATE TEMP TABLE "prepared_master" AS (
+		WITH "companies" AS (
+			INSERT INTO m_companies ("code")
+				SELECT DISTINCT ("company_id") FROM master_unique_pre
 			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
 			RETURNING *
 		),
-	"master_prepared" AS (
-		SELECT 
+		"offices" AS (
+			INSERT INTO m_offices ("code")
+				SELECT DISTINCT ("office_id") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+		),
+		"car_numbers" AS (
+			INSERT INTO m_car_numbers ("code")
+				SELECT DISTINCT ("car_number") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+		),
+		"users" AS (
+			INSERT INTO m_users ("code")
+				SELECT DISTINCT ("user_id") FROM master_unique_pre
+			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
+			RETURNING *
+		)
+		SELECT
 			"companies"."id" "company_id",
 			"companies"."code" "company_code",
 			"offices"."id" "office_id",
@@ -228,20 +230,24 @@ BEGIN
 			"users"."id" "user_id",
 			"users"."code" "user_code"
 		FROM master_unique_pre mup
-			INNER JOIN	"companies" ON "companies"."code" = mup."company_id"
-			INNER JOIN	"offices" ON "offices"."code" = mup."office_id"
-			INNER JOIN	"car_numbers" ON "car_numbers"."code" = mup."car_number"
-			INNER JOIN	"users" ON "users"."code" = mup."user_id"
-	),
-	"drives" AS (
+		INNER JOIN "companies" ON "companies"."code" = mup."company_id"
+		INNER JOIN "offices" ON "offices"."code" = mup."office_id"
+		INNER JOIN "car_numbers" ON "car_numbers"."code" = mup."car_number"
+		INNER JOIN "users" ON "users"."code" = mup."user_id"
+	);
+	COMMIT;
+	DROP TABLE master_unique_pre;
+
+	LOCK TABLE t_drive IN EXCLUSIVE MODE;
+	WITH drives AS (
 		INSERT INTO t_drive ("company_id", "office_id", "car_number_id", "user_id")
-			SELECT 
+			SELECT
 				"company_id",
 				"office_id",
 				"car_number_id",
 				"user_id"
-			FROM master_prepared mup
-		ON CONFLICT ON CONSTRAINT t_drive_un DO UPDATE SET 
+			FROM prepared_master pm
+		ON CONFLICT ON CONSTRAINT t_drive_un DO UPDATE SET
 			"company_id"=EXCLUDED."company_id",
 			"office_id"=EXCLUDED."office_id",
 			"car_number_id"=EXCLUDED."car_number_id",
@@ -262,7 +268,7 @@ BEGIN
 		) SELECT
 			ts."date" "date",
 			ts."timestamp" "timestamp",
-			drives.id "drive_id",
+			td.id "drive_id",
 			ts.latitude,
 			ts.longitude,
 			ts.speed,
@@ -271,16 +277,16 @@ BEGIN
 			ts.distance,
 			ts.d_kbn
 		FROM temp_sensors_map_ ts
-		INNER JOIN master_prepared mp ON 
+		INNER JOIN prepared_master mp ON 
 			mp.company_code = ts.company_id
 			AND mp.office_code = ts.office_id
 			AND mp.car_number_code = ts.car_number
 			AND mp.user_code = ts.user_id
-		INNER JOIN drives ON
-			drives.office_id = mp.office_id
-			AND drives.car_number_id = mp.car_number_id
-			AND drives.company_id = mp.company_id
-			AND drives.user_id = mp.user_id;
+		INNER JOIN drives td ON
+			td.office_id = mp.office_id
+			AND td.car_number_id = mp.car_number_id
+			AND td.company_id = mp.company_id
+			AND td.user_id = mp.user_id;
 	raise INFO '[%] inserted: %', pg_backend_pid(), file_name;
 END;
 $procedure$;
