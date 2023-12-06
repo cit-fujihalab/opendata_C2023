@@ -24,8 +24,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_USER=postgres
-      - POSTGRES_INITDB_WALDIR=/var/mnt/sdr/wal
-    mem_limit: 18g
+    mem_limit: 19g
     user: ${USER_ID}:${GROUP_ID}
     cpus: 12
     shm_size: 6g

@@ -178,36 +178,43 @@ END;
 $procedure$;
 
 CREATE OR REPLACE PROCEDURE postgres.insert_file(IN file_name CHARACTER VARYING) LANGUAGE plpgsql AS $procedure$
+DECLARE
+	temp_id varchar;
 BEGIN
-	SET work_mem to '1GB';
+	SET work_mem to '3GB';
+	SET temp_buffers to '5GB';
+	SET hash_mem_multiplier to '6.0';
 	SET temp_tablespaces='tbsp_z';
 
-	CREATE TEMP TABLE temp_sensors_map_ (LIKE temp_sensors_map) TABLESPACE tbsp_z;
-	TRUNCATE temp_sensors_map_ CONTINUE IDENTITY RESTRICT;
+	temp_id = '_' || replace(gen_random_uuid()::varchar,'-', '_');
+	EXECUTE 'CREATE TEMP TABLE temp_sensors_map_' || temp_id || ' (LIKE temp_sensors_map) TABLESPACE tbsp_z;';
 
 	raise INFO '[%] loading file: %', pg_backend_pid(), file_name;
-
 	BEGIN
-		EXECUTE 'COPY temp_sensors_map_ from ''' || file_name || ''' with csv header encoding ''UTF8'';';
+		EXECUTE 'COPY temp_sensors_map_' || temp_id || ' from ''' || file_name || ''' with csv header encoding ''UTF8'';';
 	EXCEPTION 
 		WHEN invalid_text_representation THEN
 			RAISE NOTICE 'invalid_text_representation in processing %', file_name;
 			RETURN;
+		WHEN data_exception THEN
+			RAISE NOTICE 'data_exception in processing %', file_name;
+			RETURN;
 	END;
 
-	ANALYZE temp_sensors_map_;
+	EXECUTE 'ANALYZE temp_sensors_map_' || temp_id;
 	raise INFO '[%] csv copied: %', pg_backend_pid(), file_name;
 
-	CREATE TEMP TABLE "master_unique_pre" AS (
-		SELECT DISTINCT "company_id", "office_id", "car_number", "user_id" FROM temp_sensors_map_
-	);
+	EXECUTE 'CREATE TEMP TABLE "master_unique_pre" AS (
+		SELECT DISTINCT "company_id", "office_id", "car_number", "user_id" FROM temp_sensors_map_' || temp_id || '
+	);';
 	raise INFO '[%] distinct finished: %', pg_backend_pid(), file_name;
 
-	LOCK TABLE m_companies, m_offices, m_car_numbers, m_users IN EXCLUSIVE MODE;
+	LOCK TABLE m_companies, m_offices, m_car_numbers, m_users IN SHARE ROW EXCLUSIVE MODE;
+	raise INFO '[%] acquire masters lock: %', pg_backend_pid(), file_name;
 	CREATE TEMP TABLE "prepared_master" AS (
 		WITH "companies" AS (
 			INSERT INTO m_companies ("code")
-				SELECT DISTINCT ("company_id") FROM master_unique_pre
+				SELECT DISTINCT ("company_id") FROM master_unique_pre 
 			ON CONFLICT ("code") DO UPDATE SET "code"=EXCLUDED."code"
 			RETURNING *
 		),
@@ -246,25 +253,31 @@ BEGIN
 	);
 	COMMIT;
 	DROP TABLE master_unique_pre;
-	raise INFO '[%] master inserted: %', pg_backend_pid(), file_name;
+	raise INFO '[%] masters inserted: %', pg_backend_pid(), file_name;
 
-	LOCK TABLE t_drive IN EXCLUSIVE MODE;
-	WITH drives AS (
-		INSERT INTO t_drive ("company_id", "office_id", "car_number_id", "user_id")
-			SELECT
-				"company_id",
-				"office_id",
-				"car_number_id",
-				"user_id"
-			FROM prepared_master pm
-		ON CONFLICT ON CONSTRAINT t_drive_un DO UPDATE SET
-			"company_id"=EXCLUDED."company_id",
-			"office_id"=EXCLUDED."office_id",
-			"car_number_id"=EXCLUDED."car_number_id",
-			"user_id"=EXCLUDED."user_id"
-		RETURNING *
-	)
-	INSERT INTO t_positions (
+	LOCK TABLE t_drive IN SHARE ROW EXCLUSIVE MODE;
+	raise INFO '[%] acquire t_drive lock: %', pg_backend_pid(), file_name;
+	CREATE TEMP TABLE "prepared_drives" AS (
+		WITH t AS (
+			INSERT INTO t_drive ("company_id", "office_id", "car_number_id", "user_id")
+				SELECT
+					"company_id",
+					"office_id",
+					"car_number_id",
+					"user_id"
+				FROM prepared_master pm
+			ON CONFLICT ON CONSTRAINT t_drive_un DO UPDATE SET
+				"company_id"=EXCLUDED."company_id",
+				"office_id"=EXCLUDED."office_id",
+				"car_number_id"=EXCLUDED."car_number_id",
+				"user_id"=EXCLUDED."user_id"
+			RETURNING *
+		) SELECT * FROM t
+	);
+	COMMIT;
+
+	raise INFO '[%] t_drive inserted: %', pg_backend_pid(), file_name;
+	EXECUTE 'INSERT INTO t_positions (
 		"date",
 		"timestamp",
 		"drive_id",
@@ -278,7 +291,7 @@ BEGIN
 		) SELECT
 			ts."date" "date",
 			ts."timestamp" "timestamp",
-			td.id "drive_id",
+			pd.id "drive_id",
 			ts.latitude,
 			ts.longitude,
 			ts.speed,
@@ -286,17 +299,18 @@ BEGIN
 			ts.mapped_longitude,
 			ts.distance,
 			ts.d_kbn
-		FROM temp_sensors_map_ ts
-		INNER JOIN prepared_master mp ON 
+		FROM temp_sensors_map_' || temp_id || ' ts
+		INNER JOIN prepared_master mp ON
 			mp.company_code = ts.company_id
 			AND mp.office_code = ts.office_id
 			AND mp.car_number_code = ts.car_number
 			AND mp.user_code = ts.user_id
-		INNER JOIN drives td ON
-			td.office_id = mp.office_id
-			AND td.car_number_id = mp.car_number_id
-			AND td.company_id = mp.company_id
-			AND td.user_id = mp.user_id;
+		INNER JOIN prepared_drives pd ON
+			pd.office_id = mp.office_id
+			AND pd.car_number_id = mp.car_number_id
+			AND pd.company_id = mp.company_id
+			AND pd.user_id = mp.user_id;';
 	raise INFO '[%] inserted: %', pg_backend_pid(), file_name;
+	EXECUTE 'DROP TABLE temp_sensors_map_' || temp_id || ';';
 END;
 $procedure$;

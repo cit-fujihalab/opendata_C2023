@@ -6,7 +6,7 @@ CREATE TABLESPACE tbsp_q LOCATION '/var/mnt/sdq';
 CREATE TABLESPACE tbsp_z LOCATION '/var/mnt/sdz';
 
 ALTER TABLESPACE tbsp_z SET (random_page_cost=1.5);
-ALTER TABLESPACE tbsp_z SET (effective_io_concurrency=100);
+ALTER TABLESPACE tbsp_z SET (effective_io_concurrency=50);
 ALTER TABLESPACE tbsp_o SET (effective_io_concurrency=1);
 ALTER TABLESPACE tbsp_p SET (effective_io_concurrency=1);
 ALTER TABLESPACE tbsp_q SET (effective_io_concurrency=1);
